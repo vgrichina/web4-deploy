@@ -6,9 +6,24 @@ Designed to be used together with https://github.com/vgrichina/web4.
 
 ## Usage
 
+When installed (use either npm or yarn):
+
 ```sh
 ipfs-deploy <src-directory> <destination-account.near>
 ```
+
+Run latest version from npm if not installed:
+
+```sh
+npx ipfs-deploy <src-directory> <destination-account.near>
+```
+## How it works
+
+It does two things:
+1) uploads and pins static content on Infura IPFS using [ipfs-deploy](https://github.com/ipfs-shipyard/ipfs-deploy)
+2) calls `web4_setStaticUrl` method in smart contract to point to latest IPFS hash to serve
+
+Note that it currently assumes that you have full access key to smart contract account.
 
 ## Smart contract integration
 
