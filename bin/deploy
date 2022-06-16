@@ -5,11 +5,26 @@ const CID = require('cids');
 const { connect, keyStores, Account } = require('near-api-js');
 
 (async () => {
-    const [ dir ] = process.argv.slice(2);
+    const args = process.argv.slice(2);
+    if (args.length != 2) {
+        console.error(`Usage:
+    ipfs-deploy <src-directory> <destination-account.near>
+
+`);
+
+        process.exit(1);
+    }
+
+    const [ dir, accountId ] = args;
 
     const cid = await deploy({
         dir,
         pinningServices: ['infura'],
+        pinningServicesCredentials: {
+            infura: {
+                // NOTE: Empty object needed to prevent crash
+            }
+        },
         logger: {
             info: console.error,
             error: console.error,
@@ -25,8 +40,11 @@ const { connect, keyStores, Account } = require('near-api-js');
         ...config,
         keyStore: new keyStores.UnencryptedFileSystemKeyStore(`${process.env.HOME}/.near-credentials`)
     })
-    let account = new Account(near.connection, config.contractName);
-    const { transaction: { hash } } = await account.functionCall(config.contractName, 'web4_setStaticUrl', { url });
+    let account = new Account(near.connection, accountId);
+    const { transaction: { hash } } = await account.functionCall(accountId, 'web4_setStaticUrl', { url });
     console.log('Updated in transaction:', `${config.explorerUrl}/transactions/${hash}`);
-})().catch(console.error);
+})().catch(err => {
+    console.error(err);
+    process.exit(1);
+});
 

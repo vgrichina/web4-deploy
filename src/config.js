@@ -1,4 +1,4 @@
-const CONTRACT_NAME = process.env.CONTRACT_NAME
+const CONTRACT_NAME = process.env.CONTRACT_NAME || '<need-valid-account.near>';
 
 function getConfig(env) {
     switch (env || 'development') {
@@ -7,7 +7,7 @@ function getConfig(env) {
             return {
                 networkId: 'mainnet',
                 nodeUrl: process.env.NODE_URL || 'https://rpc.mainnet.near.org',
-                contractName: CONTRACT_NAME || 'lands.near',
+                contractName: CONTRACT_NAME,
                 walletUrl: 'https://wallet.near.org',
                 helperUrl: 'https://helper.mainnet.near.org',
                 explorerUrl: 'https://explorer.mainnet.near.org',
