@@ -2,7 +2,14 @@
   "name": "web4-deploy",
   "version": "0.0.1",
   "description": "Deploy static content for Web4 webapp. Supports IPFS for now.",
-  "main": "index.js",
+  "bin": {
+    "web4-deploy": "bin/deploy"
+  },
   "author": "Vladimir Grichina <vgrichina@gmail.com>",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "cids": "^1.1.9",
+    "ipfs-deploy": "^11.2.2",
+    "near-api-js": "^0.45.1"
+  }
 }
