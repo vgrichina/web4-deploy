@@ -19,12 +19,7 @@ const { connect, keyStores, Account } = require('near-api-js');
 
     const cid = await deploy({
         dir,
-        pinningServices: ['infura'],
-        pinningServicesCredentials: {
-            infura: {
-                // NOTE: Empty object needed to prevent crash
-            }
-        },
+        pinningServices: ['c4rex'],
         logger: {
             info: console.error,
             error: console.error,
