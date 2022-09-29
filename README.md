@@ -9,12 +9,11 @@ Designed to be used together with https://github.com/vgrichina/web4.
 ### Obtain web3.storage API key
 
 Go to https://web3.storage and sign up for an account or login with GitHub.
-Then go to https://web3.storage/account/tokens and create a new token.
+Then go to https://web3.storage/docs/how-tos/generate-api-token/ and create a new token.
 
 This token needs to be set as `WEB3_STORAGE_TOKEN` environment variable before running the script.
 
 ### Deploy to IPFS
-
 
 When installed (use either npm or yarn):
 
