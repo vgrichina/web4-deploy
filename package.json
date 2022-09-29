@@ -10,7 +10,7 @@
   "license": "MIT",
   "dependencies": {
     "cids": "^1.1.9",
-    "ipfs-deploy": "^11.2.2",
-    "near-api-js": "^0.45.1"
+    "near-api-js": "^0.45.1",
+    "web3.storage": "^4.4.0"
   }
 }

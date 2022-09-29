@@ -1,8 +1,12 @@
 #!/usr/bin/env node
 
-const { deploy } = require('ipfs-deploy');
+const { Web3Storage, getFilesFromPath } = require('web3.storage')
+
 const CID = require('cids');
 const { connect, keyStores, Account } = require('near-api-js');
+
+const { promisify } = require('util');
+const readdir = promisify(require('fs').readdir);
 
 (async () => {
     const args = process.argv.slice(2);
@@ -15,17 +19,24 @@ const { connect, keyStores, Account } = require('near-api-js');
         process.exit(1);
     }
 
+    const WEB3_TOKEN = process.env.WEB3_TOKEN;
+    if (!WEB3_TOKEN) {
+        console.error(`
+WEB3_TOKEN environment variable needs to be set to your Web3.Storage API token.
+See https://web3.storage/docs/how-tos/generate-api-token/ for more information.
+
+`);
+        process.exit(1);
+    }
+
+    const storage = new Web3Storage({ token: WEB3_TOKEN })
+
     const [ dir, accountId ] = args;
 
-    const cid = await deploy({
-        dir,
-        pinningServices: ['c4rex'],
-        logger: {
-            info: console.error,
-            error: console.error,
-            out: console.log
-        }
-    });
+    const dirContents = await readdir(dir);
+    const files = await getFilesFromPath(dirContents.map(f => `${dir}/${f}`));
+    const cid = await storage.put(files);
+
     const cid32 = new CID(cid).toV1().toString('base32');
     const url = `ipfs://${cid32}`;
     console.log('Updating static url', url);
