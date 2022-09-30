@@ -61,7 +61,7 @@ See https://web3.storage/docs/how-tos/generate-api-token/ for more information.
     } while (!done);
 
     const url = `ipfs://${cid32}`;
-    console.log('Updating static url', url);
+    console.log('\nUpdating static url', url);
 
     const config = require('../src/config')(process.env.NODE_ENV);
     const near = await connect({
