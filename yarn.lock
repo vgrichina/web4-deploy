@@ -2269,7 +2269,7 @@ near-api-js@^0.45.1:
     text-encoding-utf-8 "^1.0.2"
     tweetnacl "^1.0.1"
 
-node-fetch@^2.6.1, "node-fetch@https://registry.npmjs.org/@achingbrain/node-fetch/-/node-fetch-2.6.7.tgz":
+node-fetch@2, node-fetch@^2.6.1, "node-fetch@https://registry.npmjs.org/@achingbrain/node-fetch/-/node-fetch-2.6.7.tgz":
   version "2.6.7"
   resolved "https://registry.npmjs.org/@achingbrain/node-fetch/-/node-fetch-2.6.7.tgz#1b5d62978f2ed07b99444f64f0df39f960a6d34d"
 
@@ -2979,6 +2979,13 @@ timeout-abort-controller@^1.1.1:
   dependencies:
     abort-controller "^3.0.0"
     retimer "^2.0.0"
+
+timeout-signal@^1.1.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/timeout-signal/-/timeout-signal-1.1.0.tgz#b3805c4b9422c239d87d5e69b20df7bc19b21da5"
+  integrity sha512-fuWY4tM1njcHCiOB7XkTmP0EOxzBkPbuQwPN+ZCzM6G0Tj4fMVgEffG/OPgiNUX48o+FhQEa2Oh4qjEDBCy5WQ==
+  dependencies:
+    abort-controller "^3.0.0"
 
 timestamp-nano@^1.0.0:
   version "1.0.0"

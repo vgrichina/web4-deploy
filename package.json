@@ -11,6 +11,8 @@
   "dependencies": {
     "cids": "^1.1.9",
     "near-api-js": "^0.45.1",
+    "node-fetch": "2",
+    "timeout-signal": "^1.1.0",
     "web3.storage": "^4.4.0"
   }
 }

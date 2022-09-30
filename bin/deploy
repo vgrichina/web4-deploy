@@ -7,6 +7,8 @@ const { connect, keyStores, Account } = require('near-api-js');
 
 const { promisify } = require('util');
 const readdir = promisify(require('fs').readdir);
+const timeoutSignal = require("timeout-signal");
+const fetch = require('node-fetch');
 
 (async () => {
     const args = process.argv.slice(2);
@@ -35,9 +37,29 @@ See https://web3.storage/docs/how-tos/generate-api-token/ for more information.
 
     const dirContents = await readdir(dir);
     const files = await getFilesFromPath(dirContents.map(f => `${dir}/${f}`));
+    console.log('Uploading files to web3.storage...')
     const cid = await storage.put(files);
 
     const cid32 = new CID(cid).toV1().toString('base32');
+
+    const IPFS_GATEWAY_LIST = (process.env.IPFS_GATEWAY_LIST || 'ipfs.web4.near.page,ipfs.io,cloudflare-ipfs.com,dweb.link').split(',');
+    let done;
+    do {
+        const results = await Promise.all(IPFS_GATEWAY_LIST.map(async gateway => {
+            const urlToCheck = `https://${gateway}/ipfs/${cid32}/`;
+            console.log(`Checking ${urlToCheck}...`);
+            try {
+                const res = await fetch(urlToCheck, { signal: timeoutSignal(5000) });
+                console.log(res.status, urlToCheck);
+                return res;
+            } catch (e) {
+                console.error(urlToCheck, e);
+                return { status: 500 };
+            }
+        }));
+        done = results.every(r => r.status == 200);
+    } while (!done);
+
     const url = `ipfs://${cid32}`;
     console.log('Updating static url', url);
 
