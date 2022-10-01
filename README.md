@@ -27,6 +27,12 @@ Run latest version from npm if not installed:
 npx web4-deploy <src-directory> <destination-account.near>
 ```
 
+### Environment variables
+
+- `WEB3_STORAGE_TOKEN` - web3.storage API key
+- `NODE_ENV` – NEAR network to use, defaults to `testnet`
+- `IPFS_GATEWAY_LIST` – comma-separated list of IPFS gateways to hydrate
+
 ## How it works
 
 It does two things:
