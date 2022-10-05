@@ -45,10 +45,10 @@ See https://web3.storage/docs/how-tos/generate-api-token/ for more information.
     const IPFS_GATEWAY_LIST = (process.env.IPFS_GATEWAY_LIST || 'ipfs.web4.near.page,ipfs.io,cloudflare-ipfs.com,dweb.link').split(',');
     const IPFS_CHECK_DELAY = 3000;
     const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-    let done;
+    let remainingGateways = [...IPFS_GATEWAY_LIST];
     do {
         await sleep(IPFS_CHECK_DELAY);
-        const results = await Promise.all(IPFS_GATEWAY_LIST.map(async gateway => {
+        await Promise.all(remainingGateways.map(async gateway => {
             const urlToCheck = `https://${gateway}/ipfs/${cid32}/`;
             console.log(`Checking ${urlToCheck}...`);
             try {
@@ -58,14 +58,16 @@ See https://web3.storage/docs/how-tos/generate-api-token/ for more information.
                     console.log('Too many requests, sleeping...');
                     await sleep(IPFS_CHECK_DELAY);
                 }
+                if (res.ok) {
+                    remainingGateways = remainingGateways.filter(g => g != gateway);
+                }
                 return res;
             } catch (e) {
                 console.error(urlToCheck, e);
                 return { status: 500 };
             }
         }));
-        done = results.every(r => r.status == 200);
-    } while (!done);
+    } while (remainingGateways.length > 0);
 
     const url = `ipfs://${cid32}`;
     console.log('\nUpdating static url', url);
