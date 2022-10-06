@@ -5,11 +5,12 @@ const { Web3Storage } = require('web3.storage')
 const CID = require('cids');
 const { connect, keyStores, Account } = require('near-api-js');
 
+const fs = require('fs');
 const timeoutSignal = require("timeout-signal");
 const fetch = require('node-fetch');
 
 const { CarReader } = require('@ipld/car');
-const { packToBlob } = require('ipfs-car/pack/blob');
+const { packToFs } = require('ipfs-car/pack/fs');
 
 (async () => {
     const args = process.argv.slice(2);
@@ -41,8 +42,12 @@ See https://docs.estuary.tech/tutorial-get-an-api-key for more information.
     const [ dir, accountId ] = args;
 
     console.log('Packaging files into a CAR file...');
-    const { root, car } = await packToBlob({ input: dir, wrapWithDirectory: false });
-    const carBuffer = Buffer.from(await car.arrayBuffer());
+    const tmpDir = fs.mkdtempSync('web4-deploy-');
+    const carFile = `${tmpDir}/deploy.car`;
+    // NOTE: packToBlob seems to pack raw input string instead of files? TODO: Figure out how to avoid tmp file
+    const { root } = await packToFs({ input: dir, output: carFile, wrapWithDirectory: false });
+    const carBuffer = Buffer.from(fs.readFileSync(carFile));
+    fs.rmSync(tmpDir, { recursive: true });
 
     if (ESTUARY_TOKEN) {
         console.log('Uploading CAR file to Estuary...');
