@@ -1,14 +1,15 @@
 #!/usr/bin/env node
 
-const { Web3Storage, getFilesFromPath } = require('web3.storage')
+const { Web3Storage } = require('web3.storage')
 
 const CID = require('cids');
 const { connect, keyStores, Account } = require('near-api-js');
 
-const { promisify } = require('util');
-const readdir = promisify(require('fs').readdir);
 const timeoutSignal = require("timeout-signal");
 const fetch = require('node-fetch');
+
+const { CarReader } = require('@ipld/car');
+const { packToBlob } = require('ipfs-car/pack/blob');
 
 (async () => {
     const args = process.argv.slice(2);
@@ -22,25 +23,49 @@ const fetch = require('node-fetch');
     }
 
     const WEB3_TOKEN = process.env.WEB3_TOKEN;
-    if (!WEB3_TOKEN) {
+    const ESTUARY_TOKEN = process.env.ESTUARY_TOKEN;
+    if (!WEB3_TOKEN && !ESTUARY_TOKEN) {
         console.error(`
-WEB3_TOKEN environment variable needs to be set to your Web3.Storage API token.
+You need to set either WEB3_TOKEN or ESTUARY_TOKEN environment variable to allow IPFS pinning.
+
+WEB3_TOKEN environment variable needs to be set to your web3.storage API token.
 See https://web3.storage/docs/how-tos/generate-api-token/ for more information.
+
+ESTUARY_TOKEN environment variable needs to be set to your Estuary API token.
+See https://docs.estuary.tech/tutorial-get-an-api-key for more information.
 
 `);
         process.exit(1);
     }
 
-    const storage = new Web3Storage({ token: WEB3_TOKEN })
-
     const [ dir, accountId ] = args;
 
-    const dirContents = await readdir(dir);
-    const files = await getFilesFromPath(dirContents.map(f => `${dir}/${f}`));
-    console.log('Uploading files to web3.storage...')
-    const cid = await storage.put(files);
+    console.log('Packaging files into a CAR file...');
+    const { root, car } = await packToBlob({ input: dir, wrapWithDirectory: false });
+    const carBuffer = Buffer.from(await car.arrayBuffer());
 
-    const cid32 = new CID(cid).toV1().toString('base32');
+    if (ESTUARY_TOKEN) {
+        console.log('Uploading CAR file to Estuary...');
+        const addCar = await fetch('https://upload.estuary.tech/content/add-car', {
+            headers: {
+                'Authorization': `Bearer ${ESTUARY_TOKEN}`,
+            },
+            method: 'POST',
+            body: carBuffer
+        });
+
+        if (!addCar.ok) {
+            throw new Error('Failed to upload CAR file to Estuary');
+        }
+    }
+
+    if (WEB3_TOKEN) {
+        console.log('Uploading CAR file to web3.storage...')
+        const storage = new Web3Storage({ token: WEB3_TOKEN })
+        await storage.putCar(await CarReader.fromBytes(carBuffer));
+    }
+
+    const cid32 = new CID(root.toString()).toV1().toString('base32');
 
     const IPFS_GATEWAY_LIST = (process.env.IPFS_GATEWAY_LIST || 'ipfs.web4.near.page,cloudflare-ipfs.com,dweb.link').split(',');
     const IPFS_CHECK_DELAY = 3000;
