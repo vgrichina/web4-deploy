@@ -42,7 +42,7 @@ See https://web3.storage/docs/how-tos/generate-api-token/ for more information.
 
     const cid32 = new CID(cid).toV1().toString('base32');
 
-    const IPFS_GATEWAY_LIST = (process.env.IPFS_GATEWAY_LIST || 'ipfs.web4.near.page,ipfs.io,cloudflare-ipfs.com,dweb.link').split(',');
+    const IPFS_GATEWAY_LIST = (process.env.IPFS_GATEWAY_LIST || 'ipfs.web4.near.page,cloudflare-ipfs.com,dweb.link').split(',');
     const IPFS_CHECK_DELAY = 3000;
     const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
     let remainingGateways = [...IPFS_GATEWAY_LIST];
