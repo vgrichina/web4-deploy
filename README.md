@@ -74,3 +74,9 @@ if (request.path == "/") {
 This allows to update static content without redeploying smart contract, which results in faster and safer deploys.
 
 See example smart contract: https://github.com/vgrichina/web4/blob/main/contract/assembly/index.ts
+
+## Roadmap
+
+- [ ] Deploy default smart contract with `web4_setStaticUrl` method
+- [ ] More robust CLI interface with both options and environment variables support
+- [ ] Support other storage providers?
