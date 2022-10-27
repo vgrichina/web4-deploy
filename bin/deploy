@@ -3,7 +3,7 @@
 const { Web3Storage } = require('web3.storage')
 
 const CID = require('cids');
-const { connect, keyStores, Account } = require('near-api-js');
+const { connect, keyStores, Account, KeyPair } = require('near-api-js');
 
 const fs = require('fs');
 const timeoutSignal = require("timeout-signal");
@@ -38,8 +38,10 @@ See https://docs.estuary.tech/tutorial-get-an-api-key for more information.
 `);
         process.exit(1);
     }
-
     const [ dir, accountId ] = args;
+
+    const NEAR_SIGNER_ACCOUNT = process.env.NEAR_SIGNER_ACCOUNT || accountId;
+    const NEAR_SIGNER_KEY = process.env.NEAR_SIGNER_KEY;
 
     console.log('Packaging files into a CAR file...');
     const tmpDir = fs.mkdtempSync('web4-deploy-');
@@ -103,11 +105,15 @@ See https://docs.estuary.tech/tutorial-get-an-api-key for more information.
     console.log('\nUpdating static url', url);
 
     const config = require('../src/config')(process.env.NODE_ENV);
+    const keyStore = NEAR_SIGNER_KEY ? new keyStores.InMemoryKeyStore() : new keyStores.UnencryptedFileSystemKeyStore(`${process.env.HOME}/.near-credentials`);
+    if (NEAR_SIGNER_KEY) {
+        keyStore.setKey(config.networkId, NEAR_SIGNER_ACCOUNT, KeyPair.fromString(NEAR_SIGNER_KEY));
+    }
     const near = await connect({
         ...config,
-        keyStore: new keyStores.UnencryptedFileSystemKeyStore(`${process.env.HOME}/.near-credentials`)
+        keyStore
     })
-    let account = new Account(near.connection, accountId);
+    let account = new Account(near.connection, NEAR_SIGNER_ACCOUNT);
     const { transaction: { hash } } = await account.functionCall(accountId, 'web4_setStaticUrl', { url });
     console.log('Updated in transaction:', `${config.explorerUrl}/transactions/${hash}`);
 })().catch(err => {
