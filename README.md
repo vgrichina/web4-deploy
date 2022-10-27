@@ -27,11 +27,24 @@ Run latest version from npm if not installed:
 npx web4-deploy <src-directory> <destination-account.near>
 ```
 
+### Use in CI/CD pipeline like GitHub Actions
+
+Make sure to store `WEB3_STORAGE_TOKEN`, `ESTUARY_TOKEN` and `NEAR_SIGNER_KEY` as GitHub secrets.
+
+`NEAR_SIGNER_KEY` allows you to pass necessary private key to the deploy script without having key storage in `~/near-credentials` as usually required by `near-cli`.
+
+Note that you don't have to sign using destination account, account you sign for should just be accepted as valid owner by `web4_setStaticUrl` method.
+
+Means that you can have GitHub-specific account which cannot do anything else besides updating static content.
+
 ### Environment variables
 
-- `WEB3_STORAGE_TOKEN` - web3.storage API key
+- `WEB3_STORAGE_TOKEN` - web3.storage API token. See https://web3.storage/docs/how-tos/generate-api-token/ for more information.
+- `ESTUARY_TOKEN` - Estuary API token. See https://docs.estuary.tech/tutorial-get-an-api-key for more information.
 - `NODE_ENV` – NEAR network to use, defaults to `testnet`
 - `IPFS_GATEWAY_LIST` – comma-separated list of IPFS gateways to hydrate
+- `NEAR_SIGNER_ACCOUNT` - NEAR account to use for signing IPFS URL update transaction. Defaults to `<destination-account.near>`.
+- `NEAR_SIGNER_KEY` - NEAR account private key to use for signing. Should have base58-encoded key starting with `ed25519:`. Defaults to using key from `~/.near-credentials/`.
 
 ## How it works
 
