@@ -90,6 +90,7 @@ See example smart contract: https://github.com/vgrichina/web4/blob/main/contract
 
 ## Roadmap
 
+- [ ] Make sure every uploaded file is hot on IPFS gateways
 - [ ] Deploy default smart contract with `web4_setStaticUrl` method
 - [ ] Allow to pass NEAR account and private key in environment variables
 - [ ] More robust CLI interface with both options and environment variables support

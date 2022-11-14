@@ -51,6 +51,8 @@ See https://docs.estuary.tech/tutorial-get-an-api-key for more information.
     const carBuffer = Buffer.from(fs.readFileSync(carFile));
     fs.rmSync(tmpDir, { recursive: true });
 
+    const carReader = await CarReader.fromBytes(carBuffer);
+
     if (ESTUARY_TOKEN) {
         console.log('Uploading CAR file to Estuary...');
         const addCar = await fetch('https://upload.estuary.tech/content/add-car', {
@@ -69,39 +71,48 @@ See https://docs.estuary.tech/tutorial-get-an-api-key for more information.
     if (WEB3_TOKEN) {
         console.log('Uploading CAR file to web3.storage...')
         const storage = new Web3Storage({ token: WEB3_TOKEN })
-        await storage.putCar(await CarReader.fromBytes(carBuffer));
+        await storage.putCar(carReader);
     }
 
-    const cid32 = new CID(root.toString()).toV1().toString('base32');
 
     const IPFS_GATEWAY_LIST = (process.env.IPFS_GATEWAY_LIST || 'ipfs.web4.near.page,cloudflare-ipfs.com,dweb.link').split(',');
     const IPFS_CHECK_DELAY = 3000;
     const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-    let remainingGateways = [...IPFS_GATEWAY_LIST];
-    do {
-        await sleep(IPFS_CHECK_DELAY);
-        await Promise.all(remainingGateways.map(async gateway => {
-            const urlToCheck = `https://${gateway}/ipfs/${cid32}/`;
-            console.log(`Checking ${urlToCheck}...`);
-            try {
-                const res = await fetch(urlToCheck, { signal: timeoutSignal(5000) });
-                console.log(res.status, urlToCheck);
-                if (res.status == 429) {
-                    console.log('Too many requests, sleeping...');
-                    await sleep(IPFS_CHECK_DELAY);
-                }
-                if (res.ok) {
-                    remainingGateways = remainingGateways.filter(g => g != gateway);
-                }
-                return res;
-            } catch (e) {
-                console.error(urlToCheck, e);
-                return { status: 500 };
-            }
-        }));
-    } while (remainingGateways.length > 0);
 
-    const url = `ipfs://${cid32}`;
+    const rootCID32 = new CID(root.toString()).toV1().toString('base32');
+    for await (const cid of carReader.cids()) {
+        const cid32 = new CID(cid.toString()).toV1().toString('base32');
+        let remainingGateways = [...IPFS_GATEWAY_LIST];
+        do {
+            await sleep(IPFS_CHECK_DELAY);
+            await Promise.all(remainingGateways.map(async gateway => {
+                const urlToCheck = `https://${gateway}/ipfs/${cid32}/`;
+                console.log(`Checking ${urlToCheck}...`);
+                try {
+                    const res = await fetch(urlToCheck, { signal: timeoutSignal(5000) });
+                    console.log(res.status, urlToCheck);
+                    if (res.status == 429) {
+                        console.log('Too many requests, sleeping...');
+                        await sleep(IPFS_CHECK_DELAY);
+                    }
+                    if (res.ok) {
+                        remainingGateways = remainingGateways.filter(g => g != gateway);
+                    }
+                    return res;
+                } catch (e) {
+                    if (e.name === 'AbortError') {
+                        console.log(`Timeout, retrying in ${IPFS_CHECK_DELAY}ms`);
+                        return { status: 408 };
+                    }
+
+                    console.error(urlToCheck, e);
+                    return { status: 500 };
+                }
+            }));
+        } while (remainingGateways.length > 0);
+    }
+
+    const url = `ipfs://${rootCID32}`;
     console.log('\nUpdating static url', url);
 
     const config = require('../src/config')(process.env.NODE_ENV);
