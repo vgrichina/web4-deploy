@@ -75,7 +75,7 @@ See https://docs.estuary.tech/tutorial-get-an-api-key for more information.
     }
 
 
-    const IPFS_GATEWAY_LIST = (process.env.IPFS_GATEWAY_LIST || 'ipfs.web4.near.page,cloudflare-ipfs.com,dweb.link').split(',');
+    const IPFS_GATEWAY_LIST = (process.env.IPFS_GATEWAY_LIST || 'ipfs.near.social,cloudflare-ipfs.com').split(',');
     const IPFS_CHECK_DELAY = 15000;
     const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
