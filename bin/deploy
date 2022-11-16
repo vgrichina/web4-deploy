@@ -88,7 +88,7 @@ See https://docs.estuary.tech/tutorial-get-an-api-key for more information.
     await Promise.all(IPFS_GATEWAY_LIST.map(async gateway => {
         const remainingCids = [...cids];
         do {
-            console.log(gateway, 'remainingCids', remainingCids.length);
+            console.log(gateway, 'remaining files', remainingCids.length);
             const cid32 = remainingCids.shift();
             const urlToCheck = `https://${gateway}/ipfs/${cid32}/`;
             console.log(`Checking ${urlToCheck}...`);
