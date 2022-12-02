@@ -5,6 +5,7 @@ const { Web3Storage } = require('web3.storage')
 const CID = require('cids');
 const { connect, keyStores, Account, KeyPair } = require('near-api-js');
 
+const path = require('path');
 const fs = require('fs');
 const timeoutSignal = require("timeout-signal");
 const fetch = require('node-fetch');
@@ -12,17 +13,23 @@ const fetch = require('node-fetch');
 const { CarReader } = require('@ipld/car');
 const { packToFs } = require('ipfs-car/pack/fs');
 
-(async () => {
-    const args = process.argv.slice(2);
-    if (args.length != 2) {
-        console.error(`Usage:
-    ipfs-deploy <src-directory> <destination-account.near>
+const meow = require('meow');
 
-`);
+const cli = meow(`
+    Usage
+        web4-deploy <src-directory> <destination-account.near>
+`, {
+    flags: {
+        deployContract: {
+            type: 'string',
+        }
+    },
+    allowUnknownFlags: false
+});
 
-        process.exit(1);
-    }
+deploy(cli);
 
+async function deploy(cli) {
     const WEB3_TOKEN = process.env.WEB3_TOKEN;
     const ESTUARY_TOKEN = process.env.ESTUARY_TOKEN;
     if (!WEB3_TOKEN && !ESTUARY_TOKEN) {
@@ -38,7 +45,7 @@ See https://docs.estuary.tech/tutorial-get-an-api-key for more information.
 `);
         process.exit(1);
     }
-    const [ dir, accountId ] = args;
+    const [ dir, accountId ] = cli.input;
 
     const NEAR_SIGNER_ACCOUNT = process.env.NEAR_SIGNER_ACCOUNT || accountId;
     const NEAR_SIGNER_KEY = process.env.NEAR_SIGNER_KEY;
@@ -115,10 +122,6 @@ See https://docs.estuary.tech/tutorial-get-an-api-key for more information.
         } while (remainingCids.length > 0);
     }));
 
-
-    const url = `ipfs://${rootCID32}`;
-    console.log('\nUpdating static url', url);
-
     const config = require('../src/config')(process.env.NODE_ENV);
     const keyStore = NEAR_SIGNER_KEY ? new keyStores.InMemoryKeyStore() : new keyStores.UnencryptedFileSystemKeyStore(`${process.env.HOME}/.near-credentials`);
     if (NEAR_SIGNER_KEY) {
@@ -129,10 +132,48 @@ See https://docs.estuary.tech/tutorial-get-an-api-key for more information.
         keyStore
     })
     let account = new Account(near.connection, NEAR_SIGNER_ACCOUNT);
-    const { transaction: { hash } } = await account.functionCall(accountId, 'web4_setStaticUrl', { url });
-    console.log('Updated in transaction:', `${config.explorerUrl}/transactions/${hash}`);
-})().catch(err => {
-    console.error(err);
-    process.exit(1);
-});
 
+    if (cli.flags.deployContract != undefined) {
+        await deployContract(account, cli.flags.deployContract);
+    }
+
+    const url = `ipfs://${rootCID32}`;
+    console.log('\nUpdating static url', url);
+
+    try {
+        const { transaction: { hash } } = await account.functionCall(accountId, 'web4_setStaticUrl', { url });
+        console.log('Updated in transaction:', `${config.explorerUrl}/transactions/${hash}`);
+    } catch (e) {
+        if (e.message.includes('Cannot find contract code for account')) {
+            console.log(`
+Account ${account.accountId} doesn't have a contract deployed yet.
+Please deploy contract first using --deploy-contract option.
+
+Example:
+
+    web4-deploy website/source/dir ${account.accountId} --deploy-contract ./out/main.wasm
+
+
+You can use default contract as well:
+
+    web4-deploy website/source/dir ${account.accountId} --deploy-contract
+
+This going to deploy mimimal contract which just sets static url to the one provided.
+See https://github.com/vgrichina/web4-min-contract.
+
+            `);
+            process.exit(1);
+        }
+
+        throw e;
+    }
+}
+
+async function deployContract(account, contractPath) {
+    console.log('Deploying contract...');
+    // NOTE: This contract is taken from https://github.com/vgrichina/web4-min-contract
+    contractPath = contractPath || path.resolve(__dirname, '../data/web4-min.wasm');
+    const contract = fs.readFileSync(contractPath);
+
+    await account.deployContract(contract);
+}
