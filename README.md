@@ -6,12 +6,22 @@ Designed to be used together with https://github.com/vgrichina/web4.
 
 ## Usage
 
-### Obtain web3.storage API key
+### Obtain IPFS pinning API key
+
+2 different pinning services are supported for now.
+
+#### web3.storage
 
 Go to https://web3.storage and sign up for an account or login with GitHub.
 Then go to https://web3.storage/docs/how-tos/generate-api-token/ and create a new token.
 
 This token needs to be set as `WEB3_STORAGE_TOKEN` environment variable before running the script.
+
+#### Estuary
+
+See https://docs.estuary.tech/tutorial-get-an-api-key for more information.
+
+This token needs to be set as `ESTUARY_API_KEY` environment variable before running the script.
 
 ### Deploy to IPFS
 
@@ -25,6 +35,20 @@ Run latest version from npm if not installed:
 
 ```sh
 npx web4-deploy <src-directory> <destination-account.near>
+```
+
+Deploy default smart contract after uploading to IPFS:
+
+```sh
+npx web4-deploy <src-directory> <destination-account.near> --deploy-contract
+```
+
+This gonna deploy [web4-min-contract](https://github.com/vgrichina/web4-min-contract) to the account, so that `.near` account can be connected to respective IPFS hash.
+
+Deploy custom smart contract after uploading to IPFS:
+
+```sh
+npx web4-deploy <src-directory> <destination-account.near> --deploy-contract path/to/contract.wasm
 ```
 
 ### Use in CI/CD pipeline like GitHub Actions
