@@ -108,7 +108,7 @@ See https://docs.estuary.tech/tutorial-get-an-api-key for more information.
                 }
                 if (!res.ok) {
                     console.log('Error while fetching', urlToCheck, res.status, res.statusText);
-                    remainingCids.push(remainingCids);
+                    remainingCids.push(cid32);
                 }
             } catch (e) {
                 remainingCids.push(cid32);
