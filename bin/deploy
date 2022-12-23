@@ -22,6 +22,9 @@ const cli = meow(`
     flags: {
         deployContract: {
             type: 'string',
+        },
+        nearfs: {
+            type: 'boolean',
         }
     },
     allowUnknownFlags: false
@@ -49,6 +52,19 @@ See https://docs.estuary.tech/tutorial-get-an-api-key for more information.
 
     const NEAR_SIGNER_ACCOUNT = process.env.NEAR_SIGNER_ACCOUNT || accountId;
     const NEAR_SIGNER_KEY = process.env.NEAR_SIGNER_KEY;
+
+    async function connectNEARAccount() {
+        const config = require('../src/config')(process.env.NODE_ENV);
+        const keyStore = NEAR_SIGNER_KEY ? new keyStores.InMemoryKeyStore() : new keyStores.UnencryptedFileSystemKeyStore(`${process.env.HOME}/.near-credentials`);
+        if (NEAR_SIGNER_KEY) {
+            keyStore.setKey(config.networkId, NEAR_SIGNER_ACCOUNT, KeyPair.fromString(NEAR_SIGNER_KEY));
+        }
+        const near = await connect({
+            ...config,
+            keyStore
+        })
+        return new Account(near.connection, NEAR_SIGNER_ACCOUNT);
+    }
 
     console.log('Packaging files into a CAR file...');
     const tmpDir = fs.mkdtempSync('web4-deploy-');
@@ -81,6 +97,33 @@ See https://docs.estuary.tech/tutorial-get-an-api-key for more information.
         await storage.putCar(carReader);
     }
 
+    if (cli.flags.nearfs) {
+        console.log('Uploading CAR file to NEAR File System...');
+        const account = await connectNEARAccount();
+
+        const { readCar, readBlock, cidToString } = require('fast-ipfs');
+        const blocks = readCar(carBuffer);
+        for (let block of blocks.slice(1)) {
+            const { cid, data } = await readBlock(block.data);
+            console.log('Uploading block', cidToString(cid), 'of size', data.length);
+            try {
+                // TODO: Check if already uploaded
+
+                await account.functionCall({
+                    contractId: NEAR_SIGNER_ACCOUNT,
+                    methodName: 'fs_store',
+                    args: data
+                });
+            } catch (e) {
+                if (e.message.includes('Cannot find contract code for account')) {
+                    // Expected error
+                    continue;
+                }
+
+                throw e;
+            }
+        }
+    }
 
     const IPFS_GATEWAY_LIST = (process.env.IPFS_GATEWAY_LIST || 'ipfs.near.social,cloudflare-ipfs.com').split(',');
     const IPFS_CHECK_DELAY = 15000;
@@ -122,16 +165,7 @@ See https://docs.estuary.tech/tutorial-get-an-api-key for more information.
         } while (remainingCids.length > 0);
     }));
 
-    const config = require('../src/config')(process.env.NODE_ENV);
-    const keyStore = NEAR_SIGNER_KEY ? new keyStores.InMemoryKeyStore() : new keyStores.UnencryptedFileSystemKeyStore(`${process.env.HOME}/.near-credentials`);
-    if (NEAR_SIGNER_KEY) {
-        keyStore.setKey(config.networkId, NEAR_SIGNER_ACCOUNT, KeyPair.fromString(NEAR_SIGNER_KEY));
-    }
-    const near = await connect({
-        ...config,
-        keyStore
-    })
-    let account = new Account(near.connection, NEAR_SIGNER_ACCOUNT);
+    const account = await connectNEARAccount();
 
     if (cli.flags.deployContract != undefined) {
         await deployContract(account, cli.flags.deployContract);
