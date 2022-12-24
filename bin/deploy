@@ -16,8 +16,17 @@ const { packToFs } = require('ipfs-car/pack/fs');
 const meow = require('meow');
 
 const cli = meow(`
-    Usage
+    Usage:
+
         web4-deploy <src-directory> <destination-account.near>
+
+    Options:
+
+        --deployContract [contract-name]   Deploy contract to the account.
+            If contract name is not provided, default contract gonna be deployed: https://github.com/vgrichina/web4-min-contract
+
+        --nearfs                           Deploy to NEARFS instead of IPFS.
+            See more details on https://github.com/vgrichina/nearfs
 `, {
     flags: {
         deployContract: {
@@ -35,7 +44,7 @@ deploy(cli);
 async function deploy(cli) {
     const WEB3_TOKEN = process.env.WEB3_TOKEN;
     const ESTUARY_TOKEN = process.env.ESTUARY_TOKEN;
-    if (!WEB3_TOKEN && !ESTUARY_TOKEN) {
+    if (!WEB3_TOKEN && !ESTUARY_TOKEN && !cli.flags.nearfs) {
         console.error(`
 You need to set either WEB3_TOKEN or ESTUARY_TOKEN environment variable to allow IPFS pinning.
 
@@ -44,6 +53,8 @@ See https://web3.storage/docs/how-tos/generate-api-token/ for more information.
 
 ESTUARY_TOKEN environment variable needs to be set to your Estuary API token.
 See https://docs.estuary.tech/tutorial-get-an-api-key for more information.
+
+Or use --nearfs flag to deploy to NEARFS instead of IPFS.
 
 `);
         process.exit(1);
