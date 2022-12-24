@@ -101,8 +101,8 @@ See https://docs.estuary.tech/tutorial-get-an-api-key for more information.
         console.log('Uploading CAR file to NEAR File System...');
         const account = await connectNEARAccount();
 
-        const { readCar, readBlock, cidToString } = require('fast-ipfs');
-        const blocks = readCar(carBuffer);
+        const { readCAR, readBlock, cidToString } = require('fast-ipfs');
+        const blocks = readCAR(carBuffer);
         for (let block of blocks.slice(1)) {
             const { cid, data } = await readBlock(block.data);
             console.log('Uploading block', cidToString(cid), 'of size', data.length);
