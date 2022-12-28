@@ -6,7 +6,7 @@ Designed to be used together with https://github.com/vgrichina/web4.
 
 ## Usage
 
-### Obtain IPFS pinning API key
+### Obtain IPFS pinning API key (if not using NEARFS)
 
 2 different pinning services are supported for now.
 
@@ -50,6 +50,16 @@ Deploy custom smart contract after uploading to IPFS:
 ```sh
 npx web4-deploy <src-directory> <destination-account.near> --deploy-contract path/to/contract.wasm
 ```
+
+### Deploy to NEARFS
+
+When you want best availability guarantees and don't mind to pay for storage, you can deploy to [NEARFS](https://github.com/vgrichina/nearfs).
+
+```sh
+npx web4-deploy <src-directory> <destination-account.near>  --nearfs
+```
+
+Note that you need to either provide `NEAR_SIGNER_KEY` or have `~/.near-credentials/<networkId>/<destination-account.near>.json` file with key. Use `NODE_ENV` to specify NEAR network to use. Defaults to `testnet`.
 
 ### Use in CI/CD pipeline like GitHub Actions
 
@@ -112,11 +122,13 @@ This allows to update static content without redeploying smart contract, which r
 
 See example smart contract: https://github.com/vgrichina/web4/blob/main/contract/assembly/index.ts
 
+You can also use defaulr smart contract for reference: https://github.com/vgrichina/web4-min-contract
+
 ## Roadmap
 
 - [x] Make sure every uploaded file is hot on IPFS gateways
 - [x] Deploy default smart contract with `web4_setStaticUrl` method
 - [x] Allow to pass NEAR account and private key in environment variables
 - [ ] More robust CLI interface with both options and environment variables support
-- [ ] Allow storing files directly on chain
+- [x] Allow storing files directly on chain
 - [ ] Support other storage providers?
