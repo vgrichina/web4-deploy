@@ -64,7 +64,7 @@ Or use --nearfs flag to deploy to NEARFS instead of IPFS.
     const NEAR_SIGNER_ACCOUNT = process.env.NEAR_SIGNER_ACCOUNT || accountId;
     const NEAR_SIGNER_KEY = process.env.NEAR_SIGNER_KEY;
 
-    async function connectNEARAccount() {
+    async function connectNEAR() {
         const config = require('../src/config')(process.env.NODE_ENV);
         const keyStore = NEAR_SIGNER_KEY ? new keyStores.InMemoryKeyStore() : new keyStores.UnencryptedFileSystemKeyStore(`${process.env.HOME}/.near-credentials`);
         if (NEAR_SIGNER_KEY) {
@@ -74,7 +74,8 @@ Or use --nearfs flag to deploy to NEARFS instead of IPFS.
             ...config,
             keyStore
         })
-        return new Account(near.connection, NEAR_SIGNER_ACCOUNT);
+        const account = new Account(near.connection, NEAR_SIGNER_ACCOUNT);
+        return { config, keyStore, near, account };
     }
 
     console.log('Packaging files into a CAR file...');
@@ -110,7 +111,7 @@ Or use --nearfs flag to deploy to NEARFS instead of IPFS.
 
     if (cli.flags.nearfs) {
         console.log('Uploading CAR file to NEAR File System...');
-        const account = await connectNEARAccount();
+        const { account } = await connectNEAR();
 
         const { readCAR, readBlock, cidToString } = require('fast-ipfs');
         const blocks = readCAR(carBuffer);
@@ -126,7 +127,7 @@ Or use --nearfs flag to deploy to NEARFS instead of IPFS.
                     args: data
                 });
             } catch (e) {
-                if (e.message.includes('Cannot find contract code for account')) {
+                if (e.message.includes('Cannot find contract code for account') || e.message.includes('Contract method is not found')) {
                     // Expected error
                     continue;
                 }
@@ -176,7 +177,7 @@ Or use --nearfs flag to deploy to NEARFS instead of IPFS.
         } while (remainingCids.length > 0);
     }));
 
-    const account = await connectNEARAccount();
+    const { config, account } = await connectNEAR();
 
     if (cli.flags.deployContract != undefined) {
         await deployContract(account, cli.flags.deployContract);
