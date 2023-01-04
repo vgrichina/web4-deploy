@@ -13,6 +13,8 @@ const fetch = require('node-fetch');
 const { CarReader } = require('@ipld/car');
 const { packToFs } = require('ipfs-car/pack/fs');
 
+const NEARFS_GATEWAY_URL = process.env.NEARFS_GATEWAY_URL || 'https://ipfs.web4.near.page';
+
 const meow = require('meow');
 
 const cli = meow(`
@@ -78,6 +80,45 @@ Or use --nearfs flag to deploy to NEARFS instead of IPFS.
         return { config, keyStore, near, account };
     }
 
+    async function deployNEARFS(carBuffer) {
+        const { account } = await connectNEAR();
+
+        console.log('Uploading CAR file to NEAR File System...');
+
+        const { readCAR, readBlock, cidToString } = require('fast-ipfs');
+        const blocks = readCAR(carBuffer);
+        for (let block of blocks.slice(1)) {
+            const { cid, data } = await readBlock(block.data);
+            const cid32 = cidToString(cid);
+            console.log('Uploading block', cid32, 'of size', data.length);
+            try {
+                const urlToCheck = `${NEARFS_GATEWAY_URL}/ipfs/${cid32}/`;
+                const res = await fetch(urlToCheck, { method: 'HEAD', signal: timeoutSignal(1000) });
+                if (res.status === 200) {
+                    console.log('Block', cid32, 'already exists on chain, skipping');
+                    continue;
+                }
+
+                if (res.status !== 404) {
+                    throw new Error(`Unexpected status code ${res.status} for ${urlToCheck}`);
+                }
+
+                await account.functionCall({
+                    contractId: NEAR_SIGNER_ACCOUNT,
+                    methodName: 'fs_store',
+                    args: data
+                });
+            } catch (e) {
+                if (e.message.includes('Cannot find contract code for account') || e.message.includes('Contract method is not found')) {
+                    // Expected error
+                    continue;
+                }
+
+                throw e;
+            }
+        }
+    }
+
     console.log('Packaging files into a CAR file...');
     const tmpDir = fs.mkdtempSync('web4-deploy-');
     const carFile = `${tmpDir}/deploy.car`;
@@ -110,31 +151,7 @@ Or use --nearfs flag to deploy to NEARFS instead of IPFS.
     }
 
     if (cli.flags.nearfs) {
-        console.log('Uploading CAR file to NEAR File System...');
-        const { account } = await connectNEAR();
-
-        const { readCAR, readBlock, cidToString } = require('fast-ipfs');
-        const blocks = readCAR(carBuffer);
-        for (let block of blocks.slice(1)) {
-            const { cid, data } = await readBlock(block.data);
-            console.log('Uploading block', cidToString(cid), 'of size', data.length);
-            try {
-                // TODO: Check if already uploaded
-
-                await account.functionCall({
-                    contractId: NEAR_SIGNER_ACCOUNT,
-                    methodName: 'fs_store',
-                    args: data
-                });
-            } catch (e) {
-                if (e.message.includes('Cannot find contract code for account') || e.message.includes('Contract method is not found')) {
-                    // Expected error
-                    continue;
-                }
-
-                throw e;
-            }
-        }
+        await deployNEARFS(carBuffer);
     }
 
     const IPFS_GATEWAY_LIST = (process.env.IPFS_GATEWAY_LIST || 'cloudflare-ipfs.com').split(',');
