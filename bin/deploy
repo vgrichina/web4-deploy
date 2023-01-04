@@ -183,11 +183,12 @@ Or use --nearfs flag to deploy to NEARFS instead of IPFS.
                     remainingCids.push(cid32);
                 }
             } catch (e) {
-                remainingCids.push(cid32);
-
                 if (e.name === 'AbortError') {
-                    console.log(`${urlToCheck} timeout, retrying different CID...`)
+                    remainingCids.splice(0, 0, cid32);
+                    console.log(`${urlToCheck} timeout, retrying after extra delay...`)
+                    await sleep(IPFS_CHECK_DELAY);
                 } else {
+                    remainingCids.push(cid32);
                     console.error(urlToCheck, e);
                 }
             }
