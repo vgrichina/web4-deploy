@@ -59,7 +59,7 @@ When you want best availability guarantees and don't mind to pay for storage, yo
 npx web4-deploy <src-directory> <destination-account.near>  --nearfs
 ```
 
-Note that you need to either provide `NEAR_SIGNER_KEY` or have `~/.near-credentials/<networkId>/<destination-account.near>.json` file with key. Use `NODE_ENV` to specify NEAR network to use. Defaults to `testnet`.
+Note that you need to either provide `NEAR_SIGNER_KEY` or have `~/.near-credentials/<networkId>/<destination-account.near>.json` file with key. Use `NEAR_ENV` or `NODE_ENV` to specify NEAR network to use. Defaults to `testnet`.
 
 ### Use in CI/CD pipeline like GitHub Actions
 
@@ -75,7 +75,8 @@ Means that you can have GitHub-specific account which cannot do anything else be
 
 - `WEB3_STORAGE_TOKEN` - web3.storage API token. See https://web3.storage/docs/how-tos/generate-api-token/ for more information.
 - `ESTUARY_TOKEN` - Estuary API token. See https://docs.estuary.tech/tutorial-get-an-api-key for more information.
-- `NODE_ENV` – NEAR network to use, defaults to `testnet`
+- `NEAR_ENV` – NEAR network to use, defaults to `testnet`
+- `NODE_ENV` - can be used instead of `NEAR_ENV`
 - `IPFS_GATEWAY_LIST` – comma-separated list of IPFS gateways to hydrate
 - `NEAR_SIGNER_ACCOUNT` - NEAR account to use for signing IPFS URL update transaction. Defaults to `<destination-account.near>`.
 - `NEAR_SIGNER_KEY` - NEAR account private key to use for signing. Should have base58-encoded key starting with `ed25519:`. Defaults to using key from `~/.near-credentials/`.
