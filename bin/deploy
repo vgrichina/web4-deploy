@@ -65,7 +65,7 @@ Or use --nearfs flag to deploy to NEARFS instead of IPFS.
     const NEAR_SIGNER_KEY = process.env.NEAR_SIGNER_KEY;
 
     async function connectNEAR() {
-        const config = require('../src/config')(process.env.NODE_ENV);
+        const config = require('../src/config')(process.env.NEAR_ENV || process.env.NODE_ENV);
         const keyStore = NEAR_SIGNER_KEY ? new keyStores.InMemoryKeyStore() : new keyStores.UnencryptedFileSystemKeyStore(`${process.env.HOME}/.near-credentials`);
         if (NEAR_SIGNER_KEY) {
             keyStore.setKey(config.networkId, NEAR_SIGNER_ACCOUNT, KeyPair.fromString(NEAR_SIGNER_KEY));
