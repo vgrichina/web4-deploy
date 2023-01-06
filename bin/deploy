@@ -3,7 +3,7 @@
 const { Web3Storage } = require('web3.storage')
 
 const CID = require('cids');
-const { connect, keyStores, Account, KeyPair } = require('near-api-js');
+const { connect, keyStores, Account, KeyPair, transactions } = require('near-api-js');
 
 const path = require('path');
 const fs = require('fs');
@@ -82,33 +82,64 @@ Or use --nearfs flag to deploy to NEARFS instead of IPFS.
         return { config, keyStore, near, account };
     }
 
+    const NEARFS_GATEWAY_TIMEOUT = parseInt(process.env.NEARFS_GATEWAY_TIMEOUT || '2500');
+    const NEARFS_GATEWAY_RETRY_COUNT = parseInt(process.env.NEARFS_GATEWAY_RETRY_COUNT || '3');
     async function deployNEARFS(carBuffer) {
         const { account } = await connectNEAR();
 
         console.log('Uploading CAR file to NEAR File System...');
 
-        const { readCAR, readBlock, cidToString } = require('fast-ipfs');
-        const blocks = readCAR(carBuffer);
-        for (let block of blocks.slice(1)) {
-            const { cid, data } = await readBlock(block.data);
+        async function isAlreadyUploaded(cid) {
             const cid32 = cidToString(cid);
-            console.log('Uploading block', cid32, 'of size', data.length);
+            const urlToCheck = `${NEARFS_GATEWAY_URL}/ipfs/${cid32}/`;
+            for (let i = 0; i < NEARFS_GATEWAY_RETRY_COUNT; i++) {
+                try {
+                    const res = await fetch(urlToCheck, { method: 'HEAD', signal: timeoutSignal(NEARFS_GATEWAY_TIMEOUT) });
+                    if (res.status === 200) {
+                        console.log('Block', cid32, 'already exists on chain, skipping');
+                        return true;
+                    }
+
+                    if (res.status !== 404) {
+                        throw new Error(`Unexpected status code ${res.status} for ${urlToCheck}`);
+                    }
+                } catch (e) {
+                    // Handle AbortError
+                    if (e.name === 'AbortError') {
+                        console.log('Timeout while checking', urlToCheck);
+                        continue;
+                    }
+                    throw e;
+                }
+            }
+
+            return false;
+        }
+
+        const { readCAR, readBlock, cidToString } = require('fast-ipfs');
+        const blocks = readCAR(carBuffer).slice(1).map(b => readBlock(b.data));
+        let currentBatch = [];
+        const batches = [currentBatch];
+        const MAX_BATCH_ACTIONS = 7;
+        const MAX_BATCH_BYTES = 256 * 1024;
+        const newBlocks = (await Promise.all(blocks.map(async ({ data, cid }) => ({ data, cid, uploaded: await isAlreadyUploaded(cid) }))))
+            .filter(({ uploaded }) => !uploaded);
+        for (let { data } of newBlocks) {
+            if (currentBatch.length >= MAX_BATCH_ACTIONS || currentBatch.reduce((a, b) => a + b.length, 0) >= MAX_BATCH_BYTES) {
+                currentBatch = [];
+                batches.push(currentBatch);
+            }
+
+            currentBatch.push(data);
+        }
+
+        let totalBlocks = batches.reduce((a, b) => a + b.length, 0);
+        let currentBlocks = 0;
+        for (let batch of batches) {
             try {
-                const urlToCheck = `${NEARFS_GATEWAY_URL}/ipfs/${cid32}/`;
-                const res = await fetch(urlToCheck, { method: 'HEAD', signal: timeoutSignal(1000) });
-                if (res.status === 200) {
-                    console.log('Block', cid32, 'already exists on chain, skipping');
-                    continue;
-                }
-
-                if (res.status !== 404) {
-                    throw new Error(`Unexpected status code ${res.status} for ${urlToCheck}`);
-                }
-
-                await account.functionCall({
-                    contractId: NEAR_SIGNER_ACCOUNT,
-                    methodName: 'fs_store',
-                    args: data
+                await account.signAndSendTransaction({
+                    receiverId: NEAR_SIGNER_ACCOUNT,
+                    actions: batch.map(data => transactions.functionCall('fs_store', data, 0, 0))
                 });
             } catch (e) {
                 if (e.message.includes('Cannot find contract code for account') || e.message.includes('Contract method is not found')) {
@@ -118,6 +149,7 @@ Or use --nearfs flag to deploy to NEARFS instead of IPFS.
 
                 throw e;
             }
+            console.log(`Uploaded ${currentBlocks} / ${totalBlocks} blocks to NEARFS`);
         }
     }
 
