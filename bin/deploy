@@ -122,8 +122,10 @@ Or use --nearfs flag to deploy to NEARFS instead of IPFS.
         const batches = [currentBatch];
         const MAX_BATCH_ACTIONS = 7;
         const MAX_BATCH_BYTES = 256 * 1024;
-        const newBlocks = (await Promise.all(blocks.map(async ({ data, cid }) => ({ data, cid, uploaded: await isAlreadyUploaded(cid) }))))
-            .filter(({ uploaded }) => !uploaded);
+        const TRHOTTLE_MS = 25;
+        const blocksAndStatus = (await Promise.all(blocks.map(async ({ data, cid }, i) => ({ data, cid, uploaded: (await sleep(i * TRHOTTLE_MS), await isAlreadyUploaded(cid)) }))));
+        blocksAndStatus.filter(({ uploaded }) => uploaded).map(({ cid }) => cidToString(cid)).forEach(cid => console.log(cid));
+        const newBlocks = blocksAndStatus.filter(({ uploaded }) => !uploaded);
         for (let { data } of newBlocks) {
             if (currentBatch.length >= MAX_BATCH_ACTIONS || currentBatch.reduce((a, b) => a + b.length, 0) >= MAX_BATCH_BYTES) {
                 currentBatch = [];
