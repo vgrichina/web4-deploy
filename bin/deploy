@@ -91,7 +91,7 @@ Or use --nearfs flag to deploy to NEARFS instead of IPFS.
 
         async function isAlreadyUploaded(cid) {
             const cid32 = cidToString(cid);
-            const urlToCheck = `${NEARFS_GATEWAY_URL}/ipfs/${cid32}/`;
+            const urlToCheck = `${NEARFS_GATEWAY_URL}/ipfs/${cid32}`;
             for (let i = 0; i < NEARFS_GATEWAY_RETRY_COUNT; i++) {
                 try {
                     const res = await fetch(urlToCheck, { method: 'HEAD', signal: timeoutSignal(NEARFS_GATEWAY_TIMEOUT) });
@@ -141,16 +141,17 @@ Or use --nearfs flag to deploy to NEARFS instead of IPFS.
             try {
                 await account.signAndSendTransaction({
                     receiverId: NEAR_SIGNER_ACCOUNT,
-                    actions: batch.map(data => transactions.functionCall('fs_store', data, 0, 0))
+                    actions: batch.map(data => transactions.functionCall('fs_store', data, 30 * 10 ** 12, 0))
                 });
             } catch (e) {
                 if (e.message.includes('Cannot find contract code for account') || e.message.includes('Contract method is not found')) {
                     // Expected error
-                    continue;
+                } else {
+                    throw e;
                 }
-
-                throw e;
             }
+
+            currentBlocks += batch.length;
             console.log(`Uploaded ${currentBlocks} / ${totalBlocks} blocks to NEARFS`);
         }
     }
