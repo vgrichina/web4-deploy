@@ -7,6 +7,7 @@ const NEARFS_GATEWAY_TIMEOUT = parseInt(process.env.NEARFS_GATEWAY_TIMEOUT || '2
 const NEARFS_GATEWAY_RETRY_COUNT = parseInt(process.env.NEARFS_GATEWAY_RETRY_COUNT || '3');
 
 const DEFAULT_OPTIONS = {
+    log: console.log,
     timeout: NEARFS_GATEWAY_TIMEOUT,
     retryCount: NEARFS_GATEWAY_RETRY_COUNT,
     gatewayUrl: NEARFS_GATEWAY_URL,
@@ -14,14 +15,14 @@ const DEFAULT_OPTIONS = {
 
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-async function isAlreadyUploaded(cid, { timeout, retryCount, gatewayUrl } = DEFAULT_OPTIONS) {
+async function isAlreadyUploaded(cid, { log, timeout, retryCount, gatewayUrl } = DEFAULT_OPTIONS) {
     const cid32 = cidToString(cid);
     const urlToCheck = `${gatewayUrl}/ipfs/${cid32}`;
     for (let i = 0; i < retryCount; i++) {
         try {
             const res = await fetch(urlToCheck, { method: 'HEAD', signal: timeoutSignal(timeout) });
             if (res.status === 200) {
-                console.log('Block', cid32, 'already exists on chain, skipping');
+                log('Block', cid32, 'already exists on chain, skipping');
                 return true;
             }
 
@@ -31,7 +32,7 @@ async function isAlreadyUploaded(cid, { timeout, retryCount, gatewayUrl } = DEFA
         } catch (e) {
             // Handle AbortError
             if (e.name === 'AbortError') {
-                console.log('Timeout while checking', urlToCheck);
+                log('Timeout while checking', urlToCheck);
                 continue;
             }
             throw e;
@@ -58,7 +59,9 @@ function splitOnBatches(newBlocks) {
 }
 
 async function deployNEARFS(account, carBuffer, options = DEFAULT_OPTIONS) {
-    console.log('Uploading CAR file to NEAR File System...');
+    const { log } = options;
+
+    log('Uploading CAR file to NEAR File System...');
 
     const blocks = readCAR(carBuffer).slice(1).map(b => readBlock(b.data));
     const TRHOTTLE_MS = 25;
@@ -82,7 +85,7 @@ async function deployNEARFS(account, carBuffer, options = DEFAULT_OPTIONS) {
         }
 
         currentBlocks += batch.length;
-        console.log(`Uploaded ${currentBlocks} / ${totalBlocks} blocks to NEARFS`);
+        log(`Uploaded ${currentBlocks} / ${totalBlocks} blocks to NEARFS`);
     }
 }
 
