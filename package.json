@@ -10,9 +10,11 @@
   "license": "MIT",
   "dependencies": {
     "cids": "^1.1.9",
+    "fast-ipfs": "^0.1.0",
     "ipfs-car": "^0.9.1",
     "meow": "9",
-    "near-api-js": "^0.45.1",
+    "near-api-js": "^1.1.0",
+    "nearfs": "^0.1.0",
     "node-fetch": "2",
     "timeout-signal": "^1.1.0",
     "web3.storage": "^4.4.0"
