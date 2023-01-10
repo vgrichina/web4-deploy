@@ -45,6 +45,17 @@ deploy(cli);
 
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
+const NEARFS_GATEWAY_TIMEOUT = parseInt(process.env.NEARFS_GATEWAY_TIMEOUT || '2500');
+const NEARFS_GATEWAY_RETRY_COUNT = parseInt(process.env.NEARFS_GATEWAY_RETRY_COUNT || '3');
+
+const DEFAULT_OPTIONS = {
+    timeout: NEARFS_GATEWAY_TIMEOUT,
+    retryCount: NEARFS_GATEWAY_RETRY_COUNT,
+    gatewayUrl: NEARFS_GATEWAY_URL,
+};
+
+const { readCAR, readBlock, cidToString } = require('fast-ipfs');
+
 async function deploy(cli) {
     const WEB3_TOKEN = process.env.WEB3_TOKEN;
     const ESTUARY_TOKEN = process.env.ESTUARY_TOKEN;
@@ -82,76 +93,7 @@ Or use --nearfs flag to deploy to NEARFS instead of IPFS.
         return { config, keyStore, near, account };
     }
 
-    const NEARFS_GATEWAY_TIMEOUT = parseInt(process.env.NEARFS_GATEWAY_TIMEOUT || '2500');
-    const NEARFS_GATEWAY_RETRY_COUNT = parseInt(process.env.NEARFS_GATEWAY_RETRY_COUNT || '3');
-
-    const DEFAULT_OPTIONS = {
-        timeout: NEARFS_GATEWAY_TIMEOUT,
-        retryCount: NEARFS_GATEWAY_RETRY_COUNT,
-        gatewayUrl: NEARFS_GATEWAY_URL,
-    };
-
-    const { readCAR, readBlock, cidToString } = require('fast-ipfs');
-
-    async function isAlreadyUploaded(cid, { timeout, retryCount, gatewayUrl } = DEFAULT_OPTIONS) {
-        const cid32 = cidToString(cid);
-        const urlToCheck = `${gatewayUrl}/ipfs/${cid32}`;
-        for (let i = 0; i < retryCount; i++) {
-            try {
-                const res = await fetch(urlToCheck, { method: 'HEAD', signal: timeoutSignal(timeout) });
-                if (res.status === 200) {
-                    console.log('Block', cid32, 'already exists on chain, skipping');
-                    return true;
-                }
-
-                if (res.status !== 404) {
-                    throw new Error(`Unexpected status code ${res.status} for ${urlToCheck}`);
-                }
-            } catch (e) {
-                // Handle AbortError
-                if (e.name === 'AbortError') {
-                    console.log('Timeout while checking', urlToCheck);
-                    continue;
-                }
-                throw e;
-            }
-        }
-
-        return false;
-    }
-
-    async function deployNEARFS(carBuffer) {
-        const { account } = await connectNEAR();
-
-        console.log('Uploading CAR file to NEAR File System...');
-
-        const blocks = readCAR(carBuffer).slice(1).map(b => readBlock(b.data));
-        const TRHOTTLE_MS = 25;
-        const blocksAndStatus = (await Promise.all(blocks.map(async ({ data, cid }, i) => ({ data, cid, uploaded: (await sleep(i * TRHOTTLE_MS), await isAlreadyUploaded(cid)) }))));
-        const newBlocks = blocksAndStatus.filter(({ uploaded }) => !uploaded);
-
-        const batches = splitOnBatches(newBlocks);
-
-        let totalBlocks = batches.reduce((a, b) => a + b.length, 0);
-        let currentBlocks = 0;
-        for (let batch of batches) {
-            try {
-                await account.signAndSendTransaction({
-                    receiverId: account.accountId,
-                    actions: batch.map(data => transactions.functionCall('fs_store', data, 30 * 10 ** 12, 0))
-                });
-            } catch (e) {
-                if (e.message.includes('Cannot find contract code for account') || e.message.includes('Contract method is not found')) {
-                    // Expected error
-                } else {
-                    throw e;
-                }
-            }
-
-            currentBlocks += batch.length;
-            console.log(`Uploaded ${currentBlocks} / ${totalBlocks} blocks to NEARFS`);
-        }
-    }
+    const { config, account } = await connectNEAR();
 
     console.log('Packaging files into a CAR file...');
     const tmpDir = fs.mkdtempSync('web4-deploy-');
@@ -185,7 +127,7 @@ Or use --nearfs flag to deploy to NEARFS instead of IPFS.
     }
 
     if (cli.flags.nearfs) {
-        await deployNEARFS(carBuffer);
+        await deployNEARFS(account, carBuffer);
     }
 
     const rootCID32 = new CID(root.toString()).toV1().toString('base32');
@@ -197,8 +139,6 @@ Or use --nearfs flag to deploy to NEARFS instead of IPFS.
     if (ESTUARY_TOKEN || WEB3_TOKEN) {
         await checkIPFSGateways(cids);
     }
-
-    const { config, account } = await connectNEAR();
 
     if (cli.flags.deployContract != undefined) {
         await deployContract(account, cli.flags.deployContract);
@@ -295,4 +235,60 @@ async function deployContract(account, contractPath) {
     const contract = fs.readFileSync(contractPath);
 
     await account.deployContract(contract);
+}
+
+async function isAlreadyUploaded(cid, { timeout, retryCount, gatewayUrl } = DEFAULT_OPTIONS) {
+    const cid32 = cidToString(cid);
+    const urlToCheck = `${gatewayUrl}/ipfs/${cid32}`;
+    for (let i = 0; i < retryCount; i++) {
+        try {
+            const res = await fetch(urlToCheck, { method: 'HEAD', signal: timeoutSignal(timeout) });
+            if (res.status === 200) {
+                console.log('Block', cid32, 'already exists on chain, skipping');
+                return true;
+            }
+
+            if (res.status !== 404) {
+                throw new Error(`Unexpected status code ${res.status} for ${urlToCheck}`);
+            }
+        } catch (e) {
+            // Handle AbortError
+            if (e.name === 'AbortError') {
+                console.log('Timeout while checking', urlToCheck);
+                continue;
+            }
+            throw e;
+        }
+    }
+
+    return false;
+}
+
+async function deployNEARFS(account, carBuffer, options = DEFAULT_OPTIONS) {
+    console.log('Uploading CAR file to NEAR File System...');
+
+    const blocks = readCAR(carBuffer).slice(1).map(b => readBlock(b.data));
+    const TRHOTTLE_MS = 25;
+    const blocksAndStatus = (await Promise.all(blocks.map(async ({ data, cid }, i) => ({ data, cid, uploaded: (await sleep(i * TRHOTTLE_MS), await isAlreadyUploaded(cid, options)) }))));
+    const batches = splitOnBatches(blocksAndStatus.filter(({ uploaded }) => !uploaded));
+
+    let totalBlocks = batches.reduce((a, b) => a + b.length, 0);
+    let currentBlocks = 0;
+    for (let batch of batches) {
+        try {
+            await account.signAndSendTransaction({
+                receiverId: account.accountId,
+                actions: batch.map(data => transactions.functionCall('fs_store', data, 30 * 10 ** 12, 0))
+            });
+        } catch (e) {
+            if (e.message.includes('Cannot find contract code for account') || e.message.includes('Contract method is not found')) {
+                // Expected error
+            } else {
+                throw e;
+            }
+        }
+
+        currentBlocks += batch.length;
+        console.log(`Uploaded ${currentBlocks} / ${totalBlocks} blocks to NEARFS`);
+    }
 }
