@@ -1626,6 +1626,11 @@ blockstore-core@^1.0.2:
     it-take "^1.0.1"
     multiformats "^9.4.7"
 
+bn.js@5.2.0:
+  version "5.2.0"
+  resolved "https://registry.yarnpkg.com/bn.js/-/bn.js-5.2.0.tgz#358860674396c6997771a9d051fcc1b57d4ae002"
+  integrity sha512-D7iWRBvnZE8ecXiLj/9wbxH7Tk79fAh8IHaTNq1RWRixsS02W+5qS+iE9yq6RYl0asXx5tw0bLhmT5pIfbSquw==
+
 bn.js@5.2.1, bn.js@^5.2.0:
   version "5.2.1"
   resolved "https://registry.yarnpkg.com/bn.js/-/bn.js-5.2.1.tgz#0bc527a6a0d18d0aa8d5b0538ce4a77dccfa7b70"
@@ -3609,6 +3614,23 @@ natural-compare@^1.4.0:
   resolved "https://registry.yarnpkg.com/natural-compare/-/natural-compare-1.4.0.tgz#4abebfeed7541f2c27acfb29bdbbd15c8d5ba4f7"
   integrity sha512-OWND8ei3VtNC9h7V60qff3SVobHr996CTwgxubgyQYEpg290h9J0buyECNNJexkFm5sOajh5G116RYA1c8ZMSw==
 
+near-api-js@^0.45.1:
+  version "0.45.1"
+  resolved "https://registry.yarnpkg.com/near-api-js/-/near-api-js-0.45.1.tgz#0f0a4b378758a2f1b32555399d7356da73d0ef27"
+  integrity sha512-QyPO/vjvMFlcMO1DCpsqzmnSqPIyHsjK1Qi4B5ZR1cJCIWMkqugDF/TDf8FVQ85pmlcYeYwfiTqKanKz+3IG0A==
+  dependencies:
+    bn.js "5.2.0"
+    borsh "^0.7.0"
+    bs58 "^4.0.0"
+    depd "^2.0.0"
+    error-polyfill "^0.1.3"
+    http-errors "^1.7.2"
+    js-sha256 "^0.9.0"
+    mustache "^4.0.0"
+    node-fetch "^2.6.1"
+    text-encoding-utf-8 "^1.0.2"
+    tweetnacl "^1.0.1"
+
 near-api-js@^1.1.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/near-api-js/-/near-api-js-1.1.0.tgz#907e807f052c1f043c6fbf28f61872de3c02235a"
@@ -3633,10 +3655,10 @@ near-lake-framework@^1.0.6:
   dependencies:
     "@aws-sdk/client-s3" "^3.32.0"
 
-nearfs@^0.1.0:
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/nearfs/-/nearfs-0.1.0.tgz#29fee47dae942c2aaa2f31b7ed23d74f762045b9"
-  integrity sha512-QPauPktOTASfPmkVEe4Lx2Pw3axxQBNWoCgA6k0RNXmp7Vnz8+CTRrQsX51i59BOmQhuIzXhh4ac1Y8fGBkPYA==
+nearfs@^0.1.1:
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/nearfs/-/nearfs-0.1.1.tgz#0a92da519dc9f7130dcc2313bb103996773e8128"
+  integrity sha512-ybKrkGRP5VphR7EPzGDN3rnqTnconxuewTe6MBb0K/bUwDM4S+DF+8ZRKYfa0i2fObRGBE/4d/N/p4BlXdyzXA==
   dependencies:
     "@aws-sdk/credential-providers" "^3.231.0"
     "@koa/cors" "^4.0.0"
