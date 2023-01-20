@@ -36,10 +36,20 @@ const cli = meow(`
         },
         nearfs: {
             type: 'boolean',
+        },
+        help: {
+            type: 'boolean',
+        },
+        version: {
+            type: 'boolean',
         }
     },
     allowUnknownFlags: false
 });
+
+if (cli.input.length !== 2) {
+    cli.showHelp(1);
+}
 
 deploy(cli);
 
