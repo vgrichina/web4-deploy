@@ -29,6 +29,10 @@ const cli = meow(`
 
         --nearfs                           Deploy to NEARFS instead of IPFS.
             See more details on https://github.com/vgrichina/nearfs
+
+        --help                             Show this help message.
+
+        --version                          Show package version.
 `, {
     flags: {
         deployContract: {
