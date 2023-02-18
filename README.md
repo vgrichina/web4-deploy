@@ -56,8 +56,10 @@ npx web4-deploy <src-directory> <destination-account.near> --deploy-contract pat
 When you want best availability guarantees and don't mind to pay for storage, you can deploy to [NEARFS](https://github.com/vgrichina/nearfs).
 
 ```sh
-npx web4-deploy <src-directory> <destination-account.near>  --nearfs
+NEAR_ENV=mainnet npx web4-deploy <src-directory> <destination-account.near>  --nearfs
 ```
+
+`NEAR_ENV` is set to `mainnet` in this example as [NEARFS](https://github.com/vgrichina/nearfs) currently only runs mainnet indexer.
 
 Note that you need to either provide `NEAR_SIGNER_KEY` or have `~/.near-credentials/<networkId>/<destination-account.near>.json` file with key. Use `NEAR_ENV` or `NODE_ENV` to specify NEAR network to use. Defaults to `testnet`.
 
