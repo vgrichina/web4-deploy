@@ -51,7 +51,7 @@ Deploy custom smart contract after uploading to IPFS:
 npx web4-deploy <src-directory> <destination-account.near> --deploy-contract path/to/contract.wasm
 ```
 
-### Deploy to NEARFS
+### Deploy fully on-chain to NEARFS
 
 When you want best availability guarantees and don't mind to pay for storage, you can deploy to [NEARFS](https://github.com/vgrichina/nearfs).
 
