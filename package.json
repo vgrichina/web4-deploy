@@ -1,6 +1,6 @@
 {
   "name": "web4-deploy",
-  "version": "0.6.2",
+  "version": "0.6.3",
   "description": "Deploy static content for Web4 webapp. Supports IPFS for now.",
   "homepage": "https://github.com/vgrichina/web4-deploy",
   "bin": {
