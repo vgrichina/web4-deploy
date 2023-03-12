@@ -1,6 +1,6 @@
 # web4-deploy
 
-Deploy static content for Web4 webapp. Supports IPFS for now.
+Deploy static content for Web4 webapps. Supports IPFS and NEARFS.
 
 Designed to be used together with https://github.com/vgrichina/web4.
 
