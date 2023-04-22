@@ -110,7 +110,7 @@ Or use --nearfs flag to deploy to NEARFS instead of IPFS.
 
     if (ESTUARY_TOKEN) {
         console.log('Uploading CAR file to Estuary...');
-        const addCar = await fetch('https://upload.estuary.tech/content/add-car', {
+        const addCar = await fetch('https://api.estuary.tech/content/add-car', {
             headers: {
                 'Authorization': `Bearer ${ESTUARY_TOKEN}`,
             },
@@ -119,6 +119,7 @@ Or use --nearfs flag to deploy to NEARFS instead of IPFS.
         });
 
         if (!addCar.ok) {
+            console.error('Error:', await addCar.text());
             throw new Error('Failed to upload CAR file to Estuary');
         }
     }
