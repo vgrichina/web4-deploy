@@ -51,7 +51,7 @@ const cli = meow(`
     allowUnknownFlags: false
 });
 
-if (cli.input.length !== 2) {
+if (cli.input.length !== 2 || cli.flags.help) {
     cli.showHelp(1);
 }
 
