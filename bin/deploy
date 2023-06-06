@@ -154,6 +154,7 @@ Or use --nearfs flag to deploy to NEARFS instead of IPFS.
     try {
         const { transaction: { hash } } = await account.functionCall(accountId, 'web4_setStaticUrl', { url });
         console.log('Updated in transaction:', `${config.explorerUrl}/transactions/${hash}`);
+        console.log('\nVisit your website at:', `https://${accountId.replace(/^web4./, '')}.page`);
     } catch (e) {
         if (e.message.includes('Cannot find contract code for account')) {
             console.log(`
