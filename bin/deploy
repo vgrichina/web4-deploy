@@ -162,12 +162,12 @@ Please deploy contract first using --deploy-contract option.
 
 Example:
 
-    web4-deploy website/source/dir ${account.accountId} --deploy-contract ./out/main.wasm
+    web4-deploy ${dir} ${account.accountId} --deploy-contract ./out/main.wasm
 
 
 You can use default contract as well:
 
-    web4-deploy website/source/dir ${account.accountId} --deploy-contract
+    web4-deploy ${dir} ${account.accountId} --deploy-contract
 
 This going to deploy mimimal contract which just sets static url to the one provided.
 See https://github.com/vgrichina/web4-min-contract.
