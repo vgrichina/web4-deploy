@@ -133,5 +133,9 @@ You can also use defaulr smart contract for reference: https://github.com/vgrich
 - [x] Deploy default smart contract with `web4_setStaticUrl` method
 - [x] Allow to pass NEAR account and private key in environment variables
 - [ ] More robust CLI interface with both options and environment variables support
+- [ ] Deploy static website to NEAR account and NEARFS via single simple interactive command
+- [ ] Automatically login without having to install near-cli
+- [ ] Allow to create web4. subaccount automatically
+- [ ] Support testnet for NEARFS
 - [x] Allow storing files directly on chain
 - [ ] Support other storage providers?
