@@ -21,7 +21,7 @@ async function deployNEARFS(account, carBuffer, options = DEFAULT_OPTIONS) {
     const protocolConfig = await account.connection.provider.experimental_protocolConfig({ finality: 'final' });
     const { transaction_costs } = protocolConfig.runtime_config;
     const { action_creation_config, action_receipt_creation_config } = transaction_costs;
-    const { function_call_cost, function_call_cost_per_byte } = action_creation_config;
+    const { function_call_cost, function_call_cost_per_byte, transfer_cost } = action_creation_config;
     const totalGas = batches.reduce((sum, batch) => {
         const actionsGas = batch.reduce((sum, block) => {
             const sendGas = (block.length + 'fs_store'.length) * function_call_cost_per_byte.send_not_sir + function_call_cost.send_not_sir;
@@ -30,7 +30,8 @@ async function deployNEARFS(account, carBuffer, options = DEFAULT_OPTIONS) {
 
         // NOTE: Normally fs_store method not implemented so only first action will be executed and fail
         const failedCallExecGas = batch[0].length * function_call_cost_per_byte.execution + function_call_cost.execution;
-        const txGas = actionsGas + action_receipt_creation_config.send_not_sir + action_receipt_creation_config.execution + failedCallExecGas;
+        const refundGas = transfer_cost.send_not_sir + transfer_cost.execution;
+        const txGas = actionsGas + action_receipt_creation_config.send_not_sir + action_receipt_creation_config.execution + failedCallExecGas + refundGas;
         return sum + txGas;
     }, 0);
     const status = await account.connection.provider.status();
