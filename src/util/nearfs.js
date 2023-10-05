@@ -23,16 +23,15 @@ async function deployNEARFS(account, carBuffer, options = DEFAULT_OPTIONS) {
     const { action_creation_config, action_receipt_creation_config } = transaction_costs;
     const { function_call_cost, function_call_cost_per_byte } = action_creation_config;
     const totalGas = batches.reduce((sum, batch) => {
-        const totalGas = batch.reduce((sum, block) => {
-            const sendGas = block.length * function_call_cost_per_byte.send_not_sir + function_call_cost.send_not_sir + action_receipt_creation_config.send_not_sir;
-            // NOTE: Looks like execGas = 0 because method to call doesn't exist normally
-            // const execGas = block.length * function_call_cost_per_byte.execution + function_call_cost.execution + action_receipt_creation_config.execution;
+        const actionsGas = batch.reduce((sum, block) => {
+            const sendGas = (block.length + 'fs_store'.length) * function_call_cost_per_byte.send_not_sir + function_call_cost.send_not_sir;
             return sum + sendGas;
         }, 0);
 
-        // TODO: Figure out where this number comes from
-        const TMP_GAS_CORRECTION = 2000_000_000_000; // 2 Tgas
-        return sum + totalGas + action_receipt_creation_config.send_not_sir + action_receipt_creation_config.execution + TMP_GAS_CORRECTION;
+        // NOTE: Normally fs_store method not implemented so only first action will be executed and fail
+        const failedCallExecGas = batch[0].length * function_call_cost_per_byte.execution + function_call_cost.execution;
+        const txGas = actionsGas + action_receipt_creation_config.send_not_sir + action_receipt_creation_config.execution + failedCallExecGas;
+        return sum + txGas;
     }, 0);
     const status = await account.connection.provider.status();
     const { gas_price: gasPrice } = await account.connection.provider.gasPrice(status.sync_info.latest_block_hash);
