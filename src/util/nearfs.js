@@ -12,13 +12,9 @@ const DEFAULT_OPTIONS = {
     gatewayUrl: NEARFS_GATEWAY_URL,
 };
 
-async function deployNEARFS(account, carBuffer, options = DEFAULT_OPTIONS) {
-    const blocks = await blocksToUpload(carBuffer, options);
-    const batches = splitOnBatches(blocks);
-
-    // Estimate the cost of the upload
-    // NOTE: See how costs are calculated in nearcore: https://github.com/near/nearcore/blob/master/runtime/runtime/src/config.rs
-    const protocolConfig = await account.connection.provider.experimental_protocolConfig({ finality: 'final' });
+// Estimate the cost of the upload
+// NOTE: See how costs are calculated in nearcore: https://github.com/near/nearcore/blob/master/runtime/runtime/src/config.rs
+function estimateUploadCost(batches, protocolConfig) {
     const { transaction_costs } = protocolConfig.runtime_config;
     const { action_creation_config, action_receipt_creation_config } = transaction_costs;
     const { function_call_cost, function_call_cost_per_byte, transfer_cost } = action_creation_config;
@@ -34,6 +30,16 @@ async function deployNEARFS(account, carBuffer, options = DEFAULT_OPTIONS) {
         const txGas = actionsGas + action_receipt_creation_config.send_not_sir + action_receipt_creation_config.execution + failedCallExecGas + refundGas;
         return sum + txGas;
     }, 0);
+    return totalGas;
+}
+
+async function deployNEARFS(account, carBuffer, options = DEFAULT_OPTIONS) {
+    const blocks = await blocksToUpload(carBuffer, options);
+    const batches = splitOnBatches(blocks);
+
+    const protocolConfig = await account.connection.provider.experimental_protocolConfig({ finality: 'final' });
+    const totalGas  = estimateUploadCost(batches, protocolConfig);
+
     const status = await account.connection.provider.status();
     const { gas_price: gasPrice } = await account.connection.provider.gasPrice(status.sync_info.latest_block_hash);
     console.log('Estimated gas for upload:', totalGas / 1000_000_000_000, 'Tgas');
