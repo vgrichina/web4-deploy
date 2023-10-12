@@ -162,7 +162,7 @@ See http://docs.estuary.tech/tutorial-get-an-api-key for more information.
         cids.push(new CID(cid.toString()).toV1().toString('base32'));
     }
 
-    if (ESTUARY_TOKEN || WEB3_TOKEN) {
+    if (cli.flags.estuary || cli.flags.web3Storage) {
         await checkIPFSGateways(cids);
     }
 
