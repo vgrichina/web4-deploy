@@ -1,5 +1,6 @@
 const { formatNearAmount } = require('near-api-js').utils.format;
 const { blocksToUpload, splitOnBatches, uploadBlocks } = require('nearfs/src/util/upload');
+const { confirm } = require('./confirm');
 
 const NEARFS_GATEWAY_URL = process.env.NEARFS_GATEWAY_URL || 'https://ipfs.web4.near.page';
 const NEARFS_GATEWAY_TIMEOUT = parseInt(process.env.NEARFS_GATEWAY_TIMEOUT || '2500');
@@ -33,7 +34,7 @@ function estimateUploadCost(batches, protocolConfig) {
     return totalGas;
 }
 
-async function deployNEARFS(account, carBuffer, options = DEFAULT_OPTIONS) {
+async function deployNEARFS(account, carBuffer, cli, options = DEFAULT_OPTIONS) {
     const blocks = await blocksToUpload(carBuffer, options);
     const batches = splitOnBatches(blocks);
 
@@ -45,6 +46,10 @@ async function deployNEARFS(account, carBuffer, options = DEFAULT_OPTIONS) {
     console.log('Estimated gas for upload:', totalGas / 1000_000_000_000, 'Tgas');
     console.log('Current gas price:', gasPrice, 'yoctoNEAR');
     console.log('Estimated cost of upload:', formatNearAmount(BigInt(totalGas) * BigInt(gasPrice), 5), 'NEAR');
+
+    if (!cli.flags.yes && !await confirm('Continue? (y/N) ')) {
+        process.exit(1);
+    }
 
     await uploadBlocks(account, blocks, options);
 }

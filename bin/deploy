@@ -27,8 +27,12 @@ const cli = meow(`
         --deployContract [contract-name]   Deploy contract to the account.
             If contract name is not provided, default contract gonna be deployed: https://github.com/vgrichina/web4-min-contract
 
-        --nearfs                           Deploy to NEARFS instead of IPFS.
+        --nearfs                           Deploy to NEARFS instead of IPFS. Enabled by default.
             See more details on https://github.com/vgrichina/nearfs
+
+        --estuary                          Use Estuary for IPFS pinning.
+        --web3-storage                     Use web3.storage for IPFS pinning.
+        --yes                              Skip confirmation prompt.
 
         --help                             Show this help message.
 
@@ -39,6 +43,13 @@ const cli = meow(`
             type: 'string',
         },
         nearfs: {
+            type: 'boolean',
+            default: true,
+        },
+        estuary: {
+            type: 'boolean',
+        },
+        web3Storage: {
             type: 'boolean',
         },
         help: {
@@ -62,21 +73,27 @@ const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 async function deploy(cli) {
     const WEB3_TOKEN = process.env.WEB3_TOKEN;
     const ESTUARY_TOKEN = process.env.ESTUARY_TOKEN;
-    if (!WEB3_TOKEN && !ESTUARY_TOKEN && !cli.flags.nearfs) {
+
+    if (cli.flags.web3Storage && !WEB3_TOKEN) {
         console.error(`
-You need to set either WEB3_TOKEN or ESTUARY_TOKEN environment variable to allow IPFS pinning.
+You need to set WEB3_TOKEN environment variable to allow IPFS pinning.
 
 WEB3_TOKEN environment variable needs to be set to your web3.storage API token.
 See https://web3.storage/docs/how-tos/generate-api-token/ for more information.
 
-ESTUARY_TOKEN environment variable needs to be set to your Estuary API token.
-See https://docs.estuary.tech/tutorial-get-an-api-key for more information.
+`);
+    }
 
-Or use --nearfs flag to deploy to NEARFS instead of IPFS.
+    if (cli.flags.estuary && !ESTUARY_TOKEN) {
+        console.error(`
+You need to set ESTUARY_TOKEN environment variable to allow IPFS pinning.
+
+ESTUARY_TOKEN environment variable needs to be set to your Estuary API token.
+See http://docs.estuary.tech/tutorial-get-an-api-key for more information.
 
 `);
-        process.exit(1);
     }
+
     const [ dir, accountId ] = cli.input;
 
     const NEAR_SIGNER_ACCOUNT = process.env.NEAR_SIGNER_ACCOUNT || accountId;
@@ -108,7 +125,7 @@ Or use --nearfs flag to deploy to NEARFS instead of IPFS.
 
     const carReader = await CarReader.fromBytes(carBuffer);
 
-    if (ESTUARY_TOKEN) {
+    if (cli.flags.estuary) {
         console.log('Uploading CAR file to Estuary...');
         const addCar = await fetch('https://api.estuary.tech/content/add-car', {
             headers: {
@@ -124,14 +141,19 @@ Or use --nearfs flag to deploy to NEARFS instead of IPFS.
         }
     }
 
-    if (WEB3_TOKEN) {
+    if (cli.flags.web3Storage) {
         console.log('Uploading CAR file to web3.storage...')
         const storage = new Web3Storage({ token: WEB3_TOKEN })
         await storage.putCar(carReader);
     }
 
     if (cli.flags.nearfs) {
-        await deployNEARFS(account, carBuffer);
+        await deployNEARFS(account, carBuffer, cli);
+    }
+
+    if (!cli.flags.nearfs && !cli.flags.estuary && !cli.flags.web3Storage) {
+        console.error('No IPFS pinning service configured. Use one of following options: --nearfs, --estuary, --web3-storage');
+        process.exit(1);
     }
 
     const rootCID32 = new CID(root.toString()).toV1().toString('base32');
