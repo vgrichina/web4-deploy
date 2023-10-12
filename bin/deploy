@@ -7,13 +7,13 @@ const { connect, keyStores, Account, KeyPair, transactions } = require('near-api
 
 const path = require('path');
 const fs = require('fs');
-const timeoutSignal = require("timeout-signal");
 const fetch = require('node-fetch');
 
 const { CarReader } = require('@ipld/car');
 const { packToFs } = require('ipfs-car/pack/fs');
 
 const { deployNEARFS } = require('../src/util/nearfs.js');
+const { checkIPFSGateways } = require('../src/util/gateway-check.js');
 
 const meow = require('meow');
 
@@ -67,8 +67,6 @@ if (cli.input.length !== 2 || cli.flags.help) {
 }
 
 deploy(cli);
-
-const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 async function deploy(cli) {
     const WEB3_TOKEN = process.env.WEB3_TOKEN;
@@ -200,42 +198,6 @@ See https://github.com/vgrichina/web4-min-contract.
         }
 
         throw e;
-    }
-
-    async function checkIPFSGateways(cids) {
-        const IPFS_GATEWAY_LIST = (process.env.IPFS_GATEWAY_LIST || 'cloudflare-ipfs.com').split(',');
-        const IPFS_CHECK_DELAY = 15000;
-
-        await Promise.all(IPFS_GATEWAY_LIST.map(async (gateway) => {
-            const remainingCids = [...cids];
-            do {
-                console.log(gateway, 'remaining files', remainingCids.length);
-                const cid32 = remainingCids.shift();
-                const urlToCheck = `https://${gateway}/ipfs/${cid32}/`;
-                console.log(`Checking ${urlToCheck}...`);
-                try {
-                    const res = await fetch(urlToCheck, { signal: timeoutSignal(5000) });
-                    console.log(res.status, urlToCheck);
-                    if (res.status == 429) {
-                        console.log('Too many requests, sleeping...');
-                        await sleep(IPFS_CHECK_DELAY);
-                    }
-                    if (!res.ok) {
-                        console.log('Error while fetching', urlToCheck, res.status, res.statusText);
-                        remainingCids.push(cid32);
-                    }
-                } catch (e) {
-                    if (e.name === 'AbortError') {
-                        remainingCids.splice(0, 0, cid32);
-                        console.log(`${urlToCheck} timeout, retrying after extra delay...`);
-                        await sleep(IPFS_CHECK_DELAY);
-                    } else {
-                        remainingCids.push(cid32);
-                        console.error(urlToCheck, e);
-                    }
-                }
-            } while (remainingCids.length > 0);
-        }));
     }
 }
 
