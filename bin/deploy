@@ -27,6 +27,9 @@ const cli = meow(`
         --deployContract [contract-name]   Deploy contract to the account.
             If contract name is not provided, default contract gonna be deployed: https://github.com/vgrichina/web4-min-contract
 
+        --network [network]                NEAR network ID. Default: mainnet for .near accounts, testnet otherwise.
+            NEAR_ENV and NODE_ENV environment variable can be used as well if not specified explicitly.
+
         --nearfs                           Deploy to NEARFS instead of IPFS. Enabled by default.
             See more details on https://github.com/vgrichina/nearfs
 
@@ -40,6 +43,9 @@ const cli = meow(`
 `, {
     flags: {
         deployContract: {
+            type: 'string',
+        },
+        network: {
             type: 'string',
         },
         nearfs: {
@@ -97,8 +103,11 @@ See http://docs.estuary.tech/tutorial-get-an-api-key for more information.
     const NEAR_SIGNER_ACCOUNT = process.env.NEAR_SIGNER_ACCOUNT || accountId;
     const NEAR_SIGNER_KEY = process.env.NEAR_SIGNER_KEY;
 
+    const network = cli.flags.network || process.env.NEAR_ENV || process.env.NODE_ENV ||
+        (accountId.endsWith('.near') ? 'mainnet' : 'testnet');
+
     async function connectNEAR() {
-        const config = require('../src/config')(process.env.NEAR_ENV || process.env.NODE_ENV);
+        const config = require('../src/config')(network);
         const keyStore = NEAR_SIGNER_KEY ? new keyStores.InMemoryKeyStore() : new keyStores.UnencryptedFileSystemKeyStore(`${process.env.HOME}/.near-credentials`);
         if (NEAR_SIGNER_KEY) {
             keyStore.setKey(config.networkId, NEAR_SIGNER_ACCOUNT, KeyPair.fromString(NEAR_SIGNER_KEY));
@@ -174,7 +183,14 @@ See http://docs.estuary.tech/tutorial-get-an-api-key for more information.
     try {
         const { transaction: { hash } } = await account.functionCall(accountId, 'web4_setStaticUrl', { url });
         console.log('Updated in transaction:', `${config.explorerUrl}/transactions/${hash}`);
-        console.log('\nVisit your website at:', `https://${accountId.replace(/^web4./, '')}.page`);
+
+        const websiteUrl = accountId.match(/\.(near|testnet)$/) &&  `https://${accountId.replace(/^web4./, '')}.page`;
+        if (websiteUrl) {
+            console.log('\nVisit your website at:', websiteUrl);
+        } else {
+            console.log('\nYou\'ll need to run your own Web4 gateway to access', accountId);
+            // TODO: Command-line to run gateway
+        }
     } catch (e) {
         if (e.message.includes('Cannot find contract code for account')) {
             console.log(`
