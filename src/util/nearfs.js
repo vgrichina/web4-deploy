@@ -26,7 +26,7 @@ function estimateUploadCost(batches, protocolConfig) {
         }, 0);
 
         // NOTE: Normally fs_store method not implemented so only first action will be executed and fail
-        const failedCallExecGas = (batch[0].length + 'fs_store'.length) * function_call_cost_per_byte.execution + function_call_cost.execution;
+        const failedCallExecGas = (batch.length > 0 ? batch[0].length + 'fs_store'.length : 0) * function_call_cost_per_byte.execution + function_call_cost.execution;
         const refundGas = transfer_cost.send_not_sir + transfer_cost.execution;
         const txGas = actionsGas + action_receipt_creation_config.send_not_sir + action_receipt_creation_config.execution + failedCallExecGas + refundGas;
         return sum + txGas;
