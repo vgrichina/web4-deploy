@@ -38,6 +38,11 @@ async function deployNEARFS(account, carBuffer, cli, options = DEFAULT_OPTIONS) 
     const blocks = await blocksToUpload(carBuffer, options);
     const batches = splitOnBatches(blocks);
 
+    if (blocks.length === 0) {
+        console.log('Nothing to upload');
+        return;
+    }
+
     const protocolConfig = await account.connection.provider.experimental_protocolConfig({ finality: 'final' });
     const totalGas  = estimateUploadCost(batches, protocolConfig);
 
