@@ -213,6 +213,25 @@ See https://github.com/vgrichina/web4-min-contract.
             process.exit(1);
         }
 
+        if (e.message.includes('Contract method is not found')) {
+            console.log(`
+Account ${account.accountId} doesn't have web4_setStaticUrl method in it's contract.
+
+Please add web4_setStaticUrl method to your contract and try deploying again.
+
+Alternatively, you can use default contract as well:
+
+*** WARNING: this gonna overwrite your existing contract ***
+
+    web4-deploy ${dir} ${account.accountId} --deploy-contract
+
+This going to deploy mimimal contract which just sets static url to the one provided.
+See https://github.com/vgrichina/web4-min-contract.
+
+            `);
+            process.exit(1);
+        }
+
         throw e;
     }
 }
