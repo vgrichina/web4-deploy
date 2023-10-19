@@ -232,6 +232,21 @@ See https://github.com/vgrichina/web4-min-contract.
             process.exit(1);
         }
 
+        if (e.message.includes('Can not sign transactions for account')) {
+            console.log(`
+Can not sign transactions for account ${account.accountId} on network ${network}.
+
+You need to have keys for ${account.accountId} in your key store at ~/.near-credentials/${network}/${account.accountId}.json
+Usually this means you need to login to your account using near-cli:
+
+    NEAR_ENV=${network} near login
+
+Alternatively you can use NEAR_SIGNER_ACCOUNT and NEAR_SIGNER_KEY environment variables to specify account and key to use directly.
+
+            `);
+            process.exit(1);
+        }
+
         throw e;
     }
 }
