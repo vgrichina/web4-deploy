@@ -34,7 +34,8 @@ function estimateUploadCost(batches, protocolConfig) {
     return totalGas;
 }
 
-async function deployNEARFS(account, carBuffer, cli, options = DEFAULT_OPTIONS) {
+async function deployNEARFS(account, carBuffer, cli, optionsArg = DEFAULT_OPTIONS) {
+    const options = { ...DEFAULT_OPTIONS, ...optionsArg };
     const blocks = await blocksToUpload(carBuffer, options);
     const batches = splitOnBatches(blocks);
 

@@ -155,7 +155,16 @@ See http://docs.estuary.tech/tutorial-get-an-api-key for more information.
     }
 
     if (cli.flags.nearfs) {
-        await deployNEARFS(account, carBuffer, cli);
+        let gatewayUrl = process.env.NEARFS_GATEWAY_URL;
+        if (network === 'mainnet') {
+            gatewayUrl = gatewayUrl || 'https://ipfs.web4.near.page';
+        } else if (network === 'testnet') {
+            gatewayUrl = gatewayUrl || 'https://ipfs.web4.testnet.page';
+        } else if (!gatewayUrl) {
+            console.error('NEARFS_GATEWAY_URL environment variable needs to be set for custom networks.');
+            process.exit(1);
+        }
+        await deployNEARFS(account, carBuffer, cli, { gatewayUrl });
     }
 
     if (!cli.flags.nearfs && !cli.flags.estuary && !cli.flags.web3Storage) {
