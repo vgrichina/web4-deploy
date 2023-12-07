@@ -24,7 +24,7 @@ const cli = meow(`
 
     Options:
 
-        --deployContract [contract-name]   Deploy contract to the account.
+        --deploy-contract [contract-name]   Deploy contract to the account.
             If contract name is not provided, default contract gonna be deployed: https://github.com/vgrichina/web4-min-contract
 
         --network [network]                NEAR network ID. Default: mainnet for .near accounts, testnet otherwise.
