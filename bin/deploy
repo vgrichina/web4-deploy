@@ -24,7 +24,7 @@ const cli = meow(`
 
     Options:
 
-        --deploy-contract [contract-name]   Deploy contract to the account.
+        --deployContract [contract-name]   Deploy contract to the account.
             If contract name is not provided, default contract gonna be deployed: https://github.com/vgrichina/web4-min-contract
 
         --network [network]                NEAR network ID. Default: mainnet for .near accounts, testnet otherwise.
@@ -32,6 +32,8 @@ const cli = meow(`
 
         --nearfs                           Deploy to NEARFS instead of IPFS. Enabled by default.
             See more details on https://github.com/vgrichina/nearfs
+
+        --timeout-ms [timeout]             Timeout for checking if a NEARFS block is already uploaded. Default: 2500
 
         --estuary                          Use Estuary for IPFS pinning.
         --web3-storage                     Use web3.storage for IPFS pinning.
@@ -47,6 +49,9 @@ const cli = meow(`
         },
         network: {
             type: 'string',
+        },
+        timeoutMs: {
+            type: 'number',
         },
         nearfs: {
             type: 'boolean',
@@ -164,7 +169,7 @@ See http://docs.estuary.tech/tutorial-get-an-api-key for more information.
             console.error('NEARFS_GATEWAY_URL environment variable needs to be set for custom networks.');
             process.exit(1);
         }
-        await deployNEARFS(account, carBuffer, cli, { gatewayUrl });
+        await deployNEARFS(account, carBuffer, cli, { gatewayUrl, timeout: cli.flags.timeoutMs });
     }
 
     if (!cli.flags.nearfs && !cli.flags.estuary && !cli.flags.web3Storage) {
