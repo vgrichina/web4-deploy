@@ -169,7 +169,7 @@ See http://docs.estuary.tech/tutorial-get-an-api-key for more information.
             console.error('NEARFS_GATEWAY_URL environment variable needs to be set for custom networks.');
             process.exit(1);
         }
-        await deployNEARFS(account, carBuffer, cli, { gatewayUrl, timeout: cli.flags.timeoutMs });
+        await deployNEARFS(account, carBuffer, cli, { gatewayUrl, timeout: cli.flags.timeoutMs ?? 2500 });
     }
 
     if (!cli.flags.nearfs && !cli.flags.estuary && !cli.flags.web3Storage) {
