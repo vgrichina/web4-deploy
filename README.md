@@ -80,6 +80,9 @@ Means that you can have GitHub-specific account which cannot do anything else be
 - `IPFS_GATEWAY_LIST` – comma-separated list of IPFS gateways to hydrate
 - `NEAR_SIGNER_ACCOUNT` - NEAR account to use for signing IPFS URL update transaction. Defaults to `<destination-account.near>`.
 - `NEAR_SIGNER_KEY` - NEAR account private key to use for signing. Should have base58-encoded key starting with `ed25519:`. Defaults to using key from `~/.near-credentials/`.
+- `NEARFS_GATEWAY_URL` - URL of the NEARFS gateway.
+- `NEARFS_GATEWAY_TIMEOUT` - time until requests to the NEARFS gateway time out, in milliseconds.
+- `NEARFS_GATEWAY_RETRY_COUNT` - the maximum number of attempts to check if a block exists on NEARFS.
 
 ## How it works
 
