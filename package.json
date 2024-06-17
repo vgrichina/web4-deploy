@@ -6,6 +6,9 @@
   "bin": {
     "web4-deploy": "bin/deploy"
   },
+  "engines": {
+    "node": ">=16.0.0"
+  },
   "author": "Vladimir Grichina <vgrichina@gmail.com>",
   "license": "MIT",
   "dependencies": {
