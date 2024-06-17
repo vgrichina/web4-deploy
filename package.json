@@ -14,7 +14,7 @@
     "ipfs-car": "^0.9.1",
     "meow": "9",
     "near-api-js": "^0.45.1",
-    "nearfs": "^0.3.2",
+    "nearfs": "^0.4.0",
     "node-fetch": "2",
     "timeout-signal": "^1.1.0",
     "web3.storage": "^4.4.0"
