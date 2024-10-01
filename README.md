@@ -15,7 +15,7 @@ Designed to be used together with https://github.com/vgrichina/web4.
 Go to https://web3.storage and sign up for an account or login with GitHub.
 Then go to https://web3.storage/docs/how-tos/generate-api-token/ and create a new token.
 
-This token needs to be set as `WEB3_STORAGE_TOKEN` environment variable before running the script.
+This token needs to be set as `WEB3_TOKEN` environment variable before running the script.
 
 #### Estuary
 
@@ -63,7 +63,7 @@ Note that you need to either provide `NEAR_SIGNER_KEY` or have `~/.near-credenti
 
 ### Use in CI/CD pipeline like GitHub Actions
 
-Make sure to store `WEB3_STORAGE_TOKEN`, `ESTUARY_TOKEN` and `NEAR_SIGNER_KEY` as GitHub secrets.
+Make sure to store `WEB3_TOKEN`, `ESTUARY_TOKEN` and `NEAR_SIGNER_KEY` as GitHub secrets.
 
 `NEAR_SIGNER_KEY` allows you to pass necessary private key to the deploy script without having key storage in `~/near-credentials` as usually required by `near-cli`.
 
@@ -71,9 +71,18 @@ Note that you don't have to sign using destination account, account you sign for
 
 Means that you can have GitHub-specific account which cannot do anything else besides updating static content.
 
+### CLI Options
+
+- `--deploy-contract [contract-name]`: Deploy contract to the account. If contract name is not provided, default contract will be deployed.
+- `--network [network]`: NEAR network ID. Default: mainnet for .near accounts, testnet otherwise.
+- `--nearfs`: Deploy to NEARFS instead of IPFS. Enabled by default.
+- `--estuary`: Use Estuary for IPFS pinning.
+- `--web3-storage`: Use web3.storage for IPFS pinning.
+- `--yes`: Skip confirmation prompt.
+
 ### Environment variables
 
-- `WEB3_STORAGE_TOKEN` - web3.storage API token. See https://web3.storage/docs/how-tos/generate-api-token/ for more information.
+- `WEB3_TOKEN` - web3.storage API token. See https://web3.storage/docs/how-tos/generate-api-token/ for more information.
 - `ESTUARY_TOKEN` - Estuary API token. See https://docs.estuary.tech/tutorial-get-an-api-key for more information.
 - `NEAR_ENV` – NEAR network to use, defaults to `testnet`
 - `NODE_ENV` - can be used instead of `NEAR_ENV`
@@ -134,7 +143,7 @@ You can also use defaulr smart contract for reference: https://github.com/vgrich
 - [x] Deploy default smart contract with `web4_setStaticUrl` method
 - [x] Allow to pass NEAR account and private key in environment variables
 - [ ] More robust CLI interface with both options and environment variables support
-- [ ] Deploy static website to NEAR account and NEARFS via single simple interactive command
+- [x] Deploy static website to NEAR account and NEARFS via single simple interactive command
 - [ ] Automatically login without having to install near-cli
 - [ ] Allow to create web4. subaccount automatically
 - [x] Support testnet for NEARFS
