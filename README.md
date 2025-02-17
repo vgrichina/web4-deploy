@@ -6,22 +6,26 @@ Designed to be used together with https://github.com/vgrichina/web4.
 
 ## Usage
 
-### Obtain IPFS pinning API key (if not using NEARFS)
+### Prerequisites
 
-2 different pinning services are supported for now.
+- Node.js 14 or higher
+- (Optional) IPFS pinning service API key if not using NEARFS
 
-#### web3.storage
+#### IPFS Pinning Services
 
-Go to https://web3.storage and sign up for an account or login with GitHub.
-Then go to https://web3.storage/docs/how-tos/generate-api-token/ and create a new token.
+If you want to use IPFS pinning (optional, as NEARFS is the default), two services are supported:
 
-This token needs to be set as `WEB3_TOKEN` environment variable before running the script.
+##### web3.storage
 
-#### Estuary
+1. Go to https://web3.storage and sign up for an account or login with GitHub
+2. Go to https://web3.storage/docs/how-tos/generate-api-token/ and create a new token
+3. Set the token as `WEB3_TOKEN` environment variable before running the script
 
-See https://docs.estuary.tech/tutorial-get-an-api-key for more information.
+##### Estuary
 
-This token needs to be set as `ESTUARY_API_KEY` environment variable before running the script.
+1. Visit https://docs.estuary.tech/tutorial-get-an-api-key
+2. Follow instructions to get an API token
+3. Set the token as `ESTUARY_TOKEN` environment variable before running the script
 
 ### Deploy to IPFS
 
@@ -80,18 +84,25 @@ Means that you can have GitHub-specific account which cannot do anything else be
 - `--web3-storage`: Use web3.storage for IPFS pinning.
 - `--yes`: Skip confirmation prompt.
 
-### Environment variables
+### Environment Variables
 
-- `WEB3_TOKEN` - web3.storage API token. See https://web3.storage/docs/how-tos/generate-api-token/ for more information.
-- `ESTUARY_TOKEN` - Estuary API token. See https://docs.estuary.tech/tutorial-get-an-api-key for more information.
-- `NEAR_ENV` – NEAR network to use, defaults to `testnet`
+#### NEAR Configuration
+- `NEAR_ENV` – NEAR network to use, defaults to `testnet` (or `mainnet` for .near accounts)
 - `NODE_ENV` - can be used instead of `NEAR_ENV`
-- `IPFS_GATEWAY_LIST` – comma-separated list of IPFS gateways to hydrate
-- `NEAR_SIGNER_ACCOUNT` - NEAR account to use for signing IPFS URL update transaction. Defaults to `<destination-account.near>`.
-- `NEAR_SIGNER_KEY` - NEAR account private key to use for signing. Should have base58-encoded key starting with `ed25519:`. Defaults to using key from `~/.near-credentials/`.
-- `NEARFS_GATEWAY_URL` - URL of the NEARFS gateway.
-- `NEARFS_GATEWAY_TIMEOUT` - time until requests to the NEARFS gateway time out, in milliseconds.
-- `NEARFS_GATEWAY_RETRY_COUNT` - the maximum number of attempts to check if a block exists on NEARFS.
+- `NEAR_SIGNER_ACCOUNT` - Account to use for signing transactions. Defaults to destination account
+- `NEAR_SIGNER_KEY` - Private key for signing (base58-encoded, starts with 'ed25519:'). Alternative to ~/.near-credentials
+
+#### NEARFS Configuration (Default Storage)
+- `NEARFS_GATEWAY_URL` - Gateway URL. Defaults to:
+  - Mainnet: https://ipfs.web4.near.page
+  - Testnet: https://ipfs.web4.testnet.page
+- `NEARFS_GATEWAY_TIMEOUT` - Gateway request timeout in milliseconds (default: 2500)
+- `NEARFS_GATEWAY_RETRY_COUNT` - Maximum gateway retry attempts (default: 3)
+
+#### IPFS Configuration (Optional)
+- `WEB3_TOKEN` - web3.storage API token
+- `ESTUARY_TOKEN` - Estuary API token
+- `IPFS_GATEWAY_LIST` - Comma-separated list of IPFS gateways to hydrate
 
 ## Development
 
@@ -110,11 +121,18 @@ This allows you to see readable diffs when the default contract (`data/web4-min.
 
 ## How it works
 
-It does two things:
-1) uploads and pins static content on Infura IPFS using [ipfs-deploy](https://github.com/ipfs-shipyard/ipfs-deploy)
-2) calls `web4_setStaticUrl` method in smart contract to point to latest IPFS hash to serve
+The deployment process consists of these steps:
 
-Note that it currently assumes that you have full access key to smart contract account.
+1. Your static content is packaged into a CAR (Content Addressable aRchive) file
+2. The content is deployed using one of these methods:
+   - NEARFS (default) - stores content directly on NEAR blockchain
+   - web3.storage - pins content to IPFS network
+   - Estuary - pins content to IPFS network
+3. The smart contract's `web4_setStaticUrl` method is called to update the content URL
+
+Note: The deployment requires appropriate access to the smart contract account. This can be provided either through:
+- Full access key in ~/.near-credentials
+- NEAR_SIGNER_KEY environment variable
 
 ## Smart contract integration
 
