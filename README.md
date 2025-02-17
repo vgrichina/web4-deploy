@@ -21,11 +21,6 @@ If you want to use IPFS pinning (optional, as NEARFS is the default), two servic
 2. Go to https://web3.storage/docs/how-tos/generate-api-token/ and create a new token
 3. Set the token as `WEB3_TOKEN` environment variable before running the script
 
-##### Estuary
-
-1. Visit https://docs.estuary.tech/tutorial-get-an-api-key
-2. Follow instructions to get an API token
-3. Set the token as `ESTUARY_TOKEN` environment variable before running the script
 
 ### Deploy to IPFS
 
@@ -67,7 +62,7 @@ Note that you need to either provide `NEAR_SIGNER_KEY` or have `~/.near-credenti
 
 ### Use in CI/CD pipeline like GitHub Actions
 
-Make sure to store `WEB3_TOKEN`, `ESTUARY_TOKEN` and `NEAR_SIGNER_KEY` as GitHub secrets.
+Make sure to store `WEB3_TOKEN` and `NEAR_SIGNER_KEY` as GitHub secrets.
 
 `NEAR_SIGNER_KEY` allows you to pass necessary private key to the deploy script without having key storage in `~/near-credentials` as usually required by `near-cli`.
 
@@ -80,7 +75,6 @@ Means that you can have GitHub-specific account which cannot do anything else be
 - `--deploy-contract [contract-name]`: Deploy contract to the account. If contract name is not provided, default contract will be deployed.
 - `--network [network]`: NEAR network ID. Default: mainnet for .near accounts, testnet otherwise.
 - `--nearfs`: Deploy to NEARFS instead of IPFS. Enabled by default.
-- `--estuary`: Use Estuary for IPFS pinning.
 - `--web3-storage`: Use web3.storage for IPFS pinning.
 - `--yes`: Skip confirmation prompt.
 
@@ -101,7 +95,6 @@ Means that you can have GitHub-specific account which cannot do anything else be
 
 #### IPFS Configuration (Optional)
 - `WEB3_TOKEN` - web3.storage API token
-- `ESTUARY_TOKEN` - Estuary API token
 - `IPFS_GATEWAY_LIST` - Comma-separated list of IPFS gateways to hydrate
 
 ## Development
@@ -127,7 +120,6 @@ The deployment process consists of these steps:
 2. The content is deployed using one of these methods:
    - NEARFS (default) - stores content directly on NEAR blockchain
    - web3.storage - pins content to IPFS network
-   - Estuary - pins content to IPFS network
 3. The smart contract's `web4_setStaticUrl` method is called to update the content URL
 
 Note: The deployment requires appropriate access to the smart contract account. This can be provided either through:

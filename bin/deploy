@@ -33,7 +33,6 @@ const cli = meow(`
         --nearfs                           Deploy to NEARFS instead of IPFS. Enabled by default.
             See more details on https://github.com/vgrichina/nearfs
 
-        --estuary                          Use Estuary for IPFS pinning.
         --web3-storage                     Use web3.storage for IPFS pinning.
         --yes                              Skip confirmation prompt.
 
@@ -51,9 +50,6 @@ const cli = meow(`
         nearfs: {
             type: 'boolean',
             default: true,
-        },
-        estuary: {
-            type: 'boolean',
         },
         web3Storage: {
             type: 'boolean',
@@ -76,8 +72,6 @@ deploy(cli);
 
 async function deploy(cli) {
     const WEB3_TOKEN = process.env.WEB3_TOKEN;
-    const ESTUARY_TOKEN = process.env.ESTUARY_TOKEN;
-
     if (cli.flags.web3Storage && !WEB3_TOKEN) {
         console.error(`
 You need to set WEB3_TOKEN environment variable to allow IPFS pinning.
@@ -88,15 +82,6 @@ See https://web3.storage/docs/how-tos/generate-api-token/ for more information.
 `);
     }
 
-    if (cli.flags.estuary && !ESTUARY_TOKEN) {
-        console.error(`
-You need to set ESTUARY_TOKEN environment variable to allow IPFS pinning.
-
-ESTUARY_TOKEN environment variable needs to be set to your Estuary API token.
-See http://docs.estuary.tech/tutorial-get-an-api-key for more information.
-
-`);
-    }
 
     const [ dir, accountId ] = cli.input;
 
@@ -132,21 +117,6 @@ See http://docs.estuary.tech/tutorial-get-an-api-key for more information.
 
     const carReader = await CarReader.fromBytes(carBuffer);
 
-    if (cli.flags.estuary) {
-        console.log('Uploading CAR file to Estuary...');
-        const addCar = await fetch('https://api.estuary.tech/content/add-car', {
-            headers: {
-                'Authorization': `Bearer ${ESTUARY_TOKEN}`,
-            },
-            method: 'POST',
-            body: carBuffer
-        });
-
-        if (!addCar.ok) {
-            console.error('Error:', await addCar.text());
-            throw new Error('Failed to upload CAR file to Estuary');
-        }
-    }
 
     if (cli.flags.web3Storage) {
         console.log('Uploading CAR file to web3.storage...')
@@ -167,8 +137,8 @@ See http://docs.estuary.tech/tutorial-get-an-api-key for more information.
         await deployNEARFS(account, carBuffer, cli, { gatewayUrl });
     }
 
-    if (!cli.flags.nearfs && !cli.flags.estuary && !cli.flags.web3Storage) {
-        console.error('No IPFS pinning service configured. Use one of following options: --nearfs, --estuary, --web3-storage');
+    if (!cli.flags.nearfs && !cli.flags.web3Storage) {
+        console.error('No IPFS pinning service configured. Use one of following options: --nearfs, --web3-storage');
         process.exit(1);
     }
 
@@ -178,7 +148,7 @@ See http://docs.estuary.tech/tutorial-get-an-api-key for more information.
         cids.push(new CID(cid.toString()).toV1().toString('base32'));
     }
 
-    if (cli.flags.estuary || cli.flags.web3Storage) {
+    if (cli.flags.web3Storage) {
         await checkIPFSGateways(cids);
     }
 
