@@ -61,5 +61,6 @@ async function deployNEARFS(account, carBuffer, cli, optionsArg = DEFAULT_OPTION
 }
 
 module.exports = {
-    deployNEARFS
+    deployNEARFS,
+    estimateUploadCost
 }
