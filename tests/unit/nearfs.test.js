@@ -39,8 +39,11 @@ test('estimateUploadCost', async (t) => {
     t.test('should calculate cost for single small block', (t) => {
         const batches = [[Buffer.from('Hello World')]];
         const result = estimateUploadCost(batches, mockProtocolConfig);
-        t.ok(result > 0, 'should return positive cost');
-        t.ok(Number.isInteger(result), 'should return integer value');
+        
+        // Known cost for "Hello World" (11 bytes) + "fs_store" (8 bytes) = 19 bytes
+        const expectedCost = 5_126_759_186_500; // Pre-calculated based on protocol config
+        
+        t.equal(result, expectedCost, 'should match known cost for Hello World');
         t.end();
     });
 
