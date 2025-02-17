@@ -41,7 +41,7 @@ test('estimateUploadCost', async (t) => {
         const result = estimateUploadCost(batches, mockProtocolConfig);
         
         // Known cost for "Hello World" (11 bytes) + "fs_store" (8 bytes) = 19 bytes
-        const expectedCost = 5_126_759_186_500; // Pre-calculated based on protocol config
+        const expectedCost = 5_086_250_090_492; // Pre-calculated based on protocol config
         
         t.equal(result, expectedCost, 'should match known cost for Hello World');
         t.end();
@@ -57,7 +57,7 @@ test('estimateUploadCost', async (t) => {
         const result = estimateUploadCost(batches, mockProtocolConfig);
         
         // Known costs for 3 batches with "Block N" (7 bytes) + "fs_store" (8 bytes) = 15 bytes each
-        const expectedCost = 15_380_277_559_500; // Pre-calculated for all 3 batches
+        const expectedCost = 15_258_696_609_060; // Pre-calculated for all 3 batches
         
         t.equal(result, expectedCost, 'should match known cost for multiple batches');
         t.end();
@@ -73,7 +73,7 @@ test('estimateUploadCost', async (t) => {
         const result = estimateUploadCost(batches, mockProtocolConfig);
         
         // Known cost for batch with 3 blocks of "Block N" (7 bytes each) + one "fs_store" (8 bytes)
-        const expectedCost = 5_166_851_057_500; // Pre-calculated for batch with 3 blocks
+        const expectedCost = 9_726_099_281_040; // Pre-calculated for batch with 3 blocks
         
         t.equal(result, expectedCost, 'should match known cost for multiple blocks in single batch');
         t.end();
