@@ -7,14 +7,14 @@ test('checkIPFSGateways', async (t) => {
     
     // Test successful gateway check
     t.test('should check all gateways successfully', async (t) => {
-        process.env.IPFS_GATEWAY_LIST = 'https://gateway1.io,https://gateway2.io';
+        process.env.IPFS_GATEWAY_LIST = 'gateway1.io,gateway2.io';
         
         // Mock successful responses
-        global.fetch = async (url) => {
-            return {
-                ok: true,
-                status: 200
-            };
+        global.fetch = async (url) => ({
+            ok: true,
+            status: 200,
+            statusText: 'OK',
+            text: async () => 'Success'
         };
         
         try {
@@ -28,12 +28,13 @@ test('checkIPFSGateways', async (t) => {
 
     // Test gateway timeout
     t.test('should handle gateway timeout', async (t) => {
-        process.env.IPFS_GATEWAY_LIST = 'https://slow-gateway.io';
+        process.env.IPFS_GATEWAY_LIST = 'slow-gateway.io';
         
-        // Mock timeout
+        // Mock timeout with AbortError
         global.fetch = async (url) => {
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            throw new Error('timeout');
+            const error = new Error('The operation was aborted');
+            error.name = 'AbortError';
+            throw error;
         };
         
         try {
@@ -47,7 +48,7 @@ test('checkIPFSGateways', async (t) => {
 
     // Test gateway error response
     t.test('should handle gateway error response', async (t) => {
-        process.env.IPFS_GATEWAY_LIST = 'https://error-gateway.io';
+        process.env.IPFS_GATEWAY_LIST = 'error-gateway.io';
         
         // Mock error response
         global.fetch = async (url) => ({
@@ -66,7 +67,7 @@ test('checkIPFSGateways', async (t) => {
 
     // Test multiple CIDs
     t.test('should check multiple CIDs', async (t) => {
-        process.env.IPFS_GATEWAY_LIST = 'https://gateway.io';
+        process.env.IPFS_GATEWAY_LIST = 'gateway.io';
         let fetchCount = 0;
         
         // Count fetch calls

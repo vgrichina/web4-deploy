@@ -11,7 +11,7 @@ async function checkIPFSGateways(cids) {
         do {
             console.log(gateway, 'remaining files', remainingCids.length);
             const cid32 = remainingCids.shift();
-            const urlToCheck = `https://${gateway}/ipfs/${cid32}/`;
+            const urlToCheck = gateway.startsWith('http') ? `${gateway}/ipfs/${cid32}/` : `https://${gateway}/ipfs/${cid32}/`;
             console.log(`Checking ${urlToCheck}...`);
             try {
                 const res = await fetch(urlToCheck, { signal: timeoutSignal(5000) });
