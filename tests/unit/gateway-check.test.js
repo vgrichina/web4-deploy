@@ -1,11 +1,9 @@
 const test = require('tape');
 const { checkIPFSGateways } = require('../../src/util/gateway-check');
 
-// Mock node-fetch
-const fetch = require('node-fetch');
-jest.mock('node-fetch');
-
 test('checkIPFSGateways', async (t) => {
+    // Store original fetch
+    const originalFetch = global.fetch;
     const originalFetch = global.fetch;
     const originalEnv = process.env.IPFS_GATEWAY_LIST;
     
@@ -14,10 +12,12 @@ test('checkIPFSGateways', async (t) => {
         process.env.IPFS_GATEWAY_LIST = 'https://gateway1.io,https://gateway2.io';
         
         // Mock successful responses
-        global.fetch = async (url) => ({
-            ok: true,
-            status: 200
-        });
+        global.fetch = async (url) => {
+            return {
+                ok: true,
+                status: 200
+            };
+        };
         
         try {
             await checkIPFSGateways(['bafytest123']);

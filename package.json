@@ -26,7 +26,6 @@
     "web3.storage": "^4.4.0"
   },
   "devDependencies": {
-    "tape": "^5.9.0",
-    "jest-mock": "^29.7.0"
+    "tape": "^5.9.0"
   }
 }
