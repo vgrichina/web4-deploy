@@ -93,6 +93,21 @@ Means that you can have GitHub-specific account which cannot do anything else be
 - `NEARFS_GATEWAY_TIMEOUT` - time until requests to the NEARFS gateway time out, in milliseconds.
 - `NEARFS_GATEWAY_RETRY_COUNT` - the maximum number of attempts to check if a block exists on NEARFS.
 
+## Development
+
+### WebAssembly Contract Diffs
+
+The repository includes WebAssembly diff support to make contract changes more visible. To enable this feature, install the WebAssembly Binary Toolkit (WABT):
+
+```bash
+# Ubuntu/Debian
+sudo apt install wabt
+# macOS
+brew install wabt
+```
+
+This allows you to see readable diffs when the default contract (`data/web4-min.wasm`) changes.
+
 ## How it works
 
 It does two things:
