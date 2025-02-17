@@ -1,15 +1,18 @@
 const test = require('tape');
+const readline = require('readline');
 const { confirm } = require('../../src/util/confirm');
 
 test('confirm utility', async (t) => {
-    // Mock stdin/stdout
-    const originalStdin = process.stdin;
-    const originalStdout = process.stdout;
+    // Save original readline.createInterface
+    const originalCreateInterface = readline.createInterface;
     
     // Test 'yes' response
     t.test('should return true for "yes"', async (t) => {
-        const mockStdin = require('stream').Readable.from(['yes\n']);
-        process.stdin = mockStdin;
+        // Mock readline
+        readline.createInterface = () => ({
+            question: (query, cb) => cb('yes'),
+            close: () => {}
+        });
         
         const result = await confirm('Continue?');
         t.equal(result, true, 'should return true for "yes"');
@@ -18,8 +21,11 @@ test('confirm utility', async (t) => {
 
     // Test 'y' response
     t.test('should return true for "y"', async (t) => {
-        const mockStdin = require('stream').Readable.from(['y\n']);
-        process.stdin = mockStdin;
+        // Mock readline
+        readline.createInterface = () => ({
+            question: (query, cb) => cb('y'),
+            close: () => {}
+        });
         
         const result = await confirm('Continue?');
         t.equal(result, true, 'should return true for "y"');
@@ -28,8 +34,11 @@ test('confirm utility', async (t) => {
 
     // Test 'no' response
     t.test('should return false for "no"', async (t) => {
-        const mockStdin = require('stream').Readable.from(['no\n']);
-        process.stdin = mockStdin;
+        // Mock readline
+        readline.createInterface = () => ({
+            question: (query, cb) => cb('no'),
+            close: () => {}
+        });
         
         const result = await confirm('Continue?');
         t.equal(result, false, 'should return false for "no"');
@@ -38,8 +47,7 @@ test('confirm utility', async (t) => {
 
     // Cleanup
     t.teardown(() => {
-        process.stdin = originalStdin;
-        process.stdout = originalStdout;
+        readline.createInterface = originalCreateInterface;
     });
 
     t.end();
