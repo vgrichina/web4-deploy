@@ -15,7 +15,7 @@ test('checkIPFSGateways', async (t) => {
             status: 200,
             statusText: 'OK',
             text: async () => 'Success'
-        };
+        });
         
         try {
             await checkIPFSGateways(['bafytest123']);
