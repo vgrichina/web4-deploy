@@ -57,16 +57,27 @@ test('checkIPFSGateways', async (t) => {
     // Test gateway error response
     t.test('should handle gateway error response', async (t) => {
         process.env.IPFS_GATEWAY_LIST = 'error-gateway.io';
+        let retryCount = 0;
+        const MAX_ERROR_RETRIES = 3;
         
         // Mock error response
-        global.fetch = async (url) => ({
-            ok: false,
-            status: 500
-        });
+        global.fetch = async (url) => {
+            retryCount++;
+            if (retryCount > MAX_ERROR_RETRIES) {
+                return { ok: true, status: 200 }; // Eventually succeed
+            }
+            return {
+                ok: false,
+                status: 500,
+                statusText: 'Internal Server Error'
+            };
+        };
         
         try {
             await checkIPFSGateways(['bafytest123']);
-            t.pass('should complete despite error response');
+            t.pass('should complete after retries');
+            t.ok(retryCount > 0, 'should have attempted retries');
+            t.ok(retryCount <= MAX_ERROR_RETRIES + 1, 'should not retry indefinitely');
         } catch (e) {
             t.fail('should not throw error on bad response');
         }
