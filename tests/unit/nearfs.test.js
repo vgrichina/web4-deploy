@@ -52,8 +52,11 @@ test('estimateUploadCost', async (t) => {
             [Buffer.from('Block 3')]
         ];
         const result = estimateUploadCost(batches, mockProtocolConfig);
-        const singleBatchResult = estimateUploadCost([batches[0]], mockProtocolConfig);
-        t.ok(result > singleBatchResult, 'multiple batches should cost more than single batch');
+        
+        // Known costs for 3 batches with "Block N" (7 bytes) + "fs_store" (8 bytes) = 15 bytes each
+        const expectedCost = 15_380_277_559_500; // Pre-calculated for all 3 batches
+        
+        t.equal(result, expectedCost, 'should match known cost for multiple batches');
         t.end();
     });
 
@@ -65,8 +68,11 @@ test('estimateUploadCost', async (t) => {
             Buffer.from('Block 3')
         ]];
         const result = estimateUploadCost(batches, mockProtocolConfig);
-        const singleBlockResult = estimateUploadCost([[Buffer.from('Block 1')]], mockProtocolConfig);
-        t.ok(result > singleBlockResult, 'batch with multiple blocks should cost more than single block');
+        
+        // Known cost for batch with 3 blocks of "Block N" (7 bytes each) + one "fs_store" (8 bytes)
+        const expectedCost = 5_166_851_057_500; // Pre-calculated for batch with 3 blocks
+        
+        t.equal(result, expectedCost, 'should match known cost for multiple blocks in single batch');
         t.end();
     });
 
