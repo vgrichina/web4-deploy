@@ -1,4 +1,3 @@
-const fetch = require('node-fetch');
 const timeoutSignal = require('timeout-signal');
 
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));

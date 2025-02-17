@@ -2,8 +2,7 @@ const test = require('tape');
 const { checkIPFSGateways } = require('../../src/util/gateway-check');
 
 test('checkIPFSGateways', async (t) => {
-    // Store original fetch
-    const originalFetch = global.fetch;
+    const originalFetch = fetch;
     const originalEnv = process.env.IPFS_GATEWAY_LIST;
     
     // Test successful gateway check
