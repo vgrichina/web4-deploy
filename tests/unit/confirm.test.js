@@ -45,6 +45,42 @@ test('confirm utility', async (t) => {
         t.end();
     });
 
+    // Test empty response
+    t.test('should return false for empty input', async (t) => {
+        readline.createInterface = () => ({
+            question: (query, cb) => cb(''),
+            close: () => {}
+        });
+        
+        const result = await confirm('Continue?');
+        t.equal(result, false, 'should return false for empty input');
+        t.end();
+    });
+
+    // Test uppercase response
+    t.test('should handle uppercase input', async (t) => {
+        readline.createInterface = () => ({
+            question: (query, cb) => cb('YES'),
+            close: () => {}
+        });
+        
+        const result = await confirm('Continue?');
+        t.equal(result, true, 'should return true for uppercase "YES"');
+        t.end();
+    });
+
+    // Test mixed case response
+    t.test('should handle mixed case input', async (t) => {
+        readline.createInterface = () => ({
+            question: (query, cb) => cb('YeS'),
+            close: () => {}
+        });
+        
+        const result = await confirm('Continue?');
+        t.equal(result, true, 'should return true for mixed case "YeS"');
+        t.end();
+    });
+
     // Cleanup
     t.teardown(() => {
         readline.createInterface = originalCreateInterface;
