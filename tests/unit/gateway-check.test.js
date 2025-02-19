@@ -4,6 +4,8 @@ const { checkIPFSGateways } = require('../../src/util/gateway-check');
 test('checkIPFSGateways', async (t) => {
     const originalFetch = fetch;
     const originalEnv = process.env.IPFS_GATEWAY_LIST;
+    const originalDelay = process.env.IPFS_CHECK_DELAY;
+    process.env.IPFS_CHECK_DELAY = '100'; // 100ms delay for tests
     
     // Test successful gateway check
     t.test('should check all gateways successfully', async (t) => {
@@ -104,6 +106,7 @@ test('checkIPFSGateways', async (t) => {
     t.teardown(() => {
         global.fetch = originalFetch;
         process.env.IPFS_GATEWAY_LIST = originalEnv;
+        process.env.IPFS_CHECK_DELAY = originalDelay;
     });
 
     t.end();

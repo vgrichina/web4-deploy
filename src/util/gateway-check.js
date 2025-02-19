@@ -4,7 +4,7 @@ const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 async function checkIPFSGateways(cids) {
     const IPFS_GATEWAY_LIST = (process.env.IPFS_GATEWAY_LIST || 'cloudflare-ipfs.com').split(',');
-    const IPFS_CHECK_DELAY = 15000;
+    const IPFS_CHECK_DELAY = parseInt(process.env.IPFS_CHECK_DELAY || '15000');
 
     await Promise.all(IPFS_GATEWAY_LIST.map(async (gateway) => {
         const remainingCids = [...cids];
