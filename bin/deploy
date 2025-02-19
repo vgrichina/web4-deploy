@@ -6,7 +6,6 @@ const CID = require('cids');
 const { connect, keyStores, Account, KeyPair, transactions } = require('near-api-js');
 
 const fs = require('fs');
-const fetch = require('node-fetch');
 
 const { CarReader } = require('@ipld/car');
 const { packToFs } = require('ipfs-car/pack/fs');
