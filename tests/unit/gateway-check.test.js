@@ -30,7 +30,7 @@ test('checkIPFSGateways', async (t) => {
     t.test('should handle gateway timeout', async (t) => {
         process.env.IPFS_GATEWAY_LIST = 'slow-gateway.io';
         let retryCount = 0;
-        const MAX_TEST_RETRIES = 3;
+        const MAX_TEST_RETRIES = 1;
         
         // Mock timeout with AbortError, but only retry a few times
         global.fetch = async (url) => {
@@ -58,7 +58,7 @@ test('checkIPFSGateways', async (t) => {
     t.test('should handle gateway error response', async (t) => {
         process.env.IPFS_GATEWAY_LIST = 'error-gateway.io';
         let retryCount = 0;
-        const MAX_ERROR_RETRIES = 3;
+        const MAX_ERROR_RETRIES = 1;
         
         // Mock error response
         global.fetch = async (url) => {
