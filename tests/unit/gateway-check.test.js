@@ -102,6 +102,58 @@ test('checkIPFSGateways', async (t) => {
         t.end();
     });
 
+    // Test rate limiting
+    t.test('should handle rate limiting', async (t) => {
+        process.env.IPFS_GATEWAY_LIST = 'rate-limited.io';
+        let retryCount = 0;
+        const MAX_RETRIES = 1;
+        
+        global.fetch = async (url) => {
+            retryCount++;
+            if (retryCount > MAX_RETRIES) {
+                return { ok: true, status: 200 };
+            }
+            return {
+                ok: false,
+                status: 429,
+                statusText: 'Too Many Requests'
+            };
+        };
+        
+        try {
+            await checkIPFSGateways(['bafytest123']);
+            t.pass('should handle rate limiting');
+            t.ok(retryCount > 0, 'should have attempted retry');
+        } catch (e) {
+            t.fail('should not throw on rate limiting');
+        }
+        t.end();
+    });
+
+    // Test network error
+    t.test('should handle network error', async (t) => {
+        process.env.IPFS_GATEWAY_LIST = 'error.io';
+        let retryCount = 0;
+        const MAX_RETRIES = 1;
+        
+        global.fetch = async (url) => {
+            retryCount++;
+            if (retryCount > MAX_RETRIES) {
+                return { ok: true, status: 200 };
+            }
+            throw new Error('Network error');
+        };
+        
+        try {
+            await checkIPFSGateways(['bafytest123']);
+            t.pass('should handle network error');
+            t.ok(retryCount > 0, 'should have attempted retry');
+        } catch (e) {
+            t.fail('should not throw on network error');
+        }
+        t.end();
+    });
+
     // Cleanup
     t.teardown(() => {
         global.fetch = originalFetch;
