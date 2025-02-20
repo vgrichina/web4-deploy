@@ -85,6 +85,11 @@ test('NEARFS integration', async (t) => {
             }
         },
         signAndSendTransaction: async ({ receiverId, actions }) => {
+            console.log('Transaction data:', actions);
+            // Verify the transaction contains expected data
+            const functionCallAction = actions[0];
+            t.equal(functionCallAction.methodName, 'fs_store', 'should call fs_store method');
+            t.ok(functionCallAction.args.length > 0, 'should have block data');
             return { transaction_outcome: { id: 'test-tx' } };
         }
     };
