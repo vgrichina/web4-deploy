@@ -75,7 +75,21 @@ if (require.main === module) {
     module.exports = { main };
 }
 
-async function deploy(cli) {
+async function connectNEAR(network, NEAR_SIGNER_KEY, NEAR_SIGNER_ACCOUNT) {
+    const config = require('../src/config')(network);
+    const keyStore = NEAR_SIGNER_KEY ? new keyStores.InMemoryKeyStore() : new keyStores.UnencryptedFileSystemKeyStore(`${process.env.HOME}/.near-credentials`);
+    if (NEAR_SIGNER_KEY) {
+        keyStore.setKey(config.networkId, NEAR_SIGNER_ACCOUNT, KeyPair.fromString(NEAR_SIGNER_KEY));
+    }
+    const near = await connect({
+        ...config,
+        keyStore
+    })
+    const account = new Account(near.connection, NEAR_SIGNER_ACCOUNT);
+    return { config, keyStore, near, account };
+}
+
+async function deploy(cli, { connectNEAR = connectNEAR } = {}) {
     const WEB3_TOKEN = process.env.WEB3_TOKEN;
     if (cli.flags.web3Storage && !WEB3_TOKEN) {
         console.error(`
@@ -96,21 +110,7 @@ See https://web3.storage/docs/how-tos/generate-api-token/ for more information.
     const network = cli.flags.network || process.env.NEAR_ENV || process.env.NODE_ENV ||
         (accountId.endsWith('.near') ? 'mainnet' : 'testnet');
 
-    async function connectNEAR() {
-        const config = require('../src/config')(network);
-        const keyStore = NEAR_SIGNER_KEY ? new keyStores.InMemoryKeyStore() : new keyStores.UnencryptedFileSystemKeyStore(`${process.env.HOME}/.near-credentials`);
-        if (NEAR_SIGNER_KEY) {
-            keyStore.setKey(config.networkId, NEAR_SIGNER_ACCOUNT, KeyPair.fromString(NEAR_SIGNER_KEY));
-        }
-        const near = await connect({
-            ...config,
-            keyStore
-        })
-        const account = new Account(near.connection, NEAR_SIGNER_ACCOUNT);
-        return { config, keyStore, near, account };
-    }
-
-    const { config, account } = await connectNEAR();
+    const { config, account } = await connectNEAR(network, NEAR_SIGNER_KEY, NEAR_SIGNER_ACCOUNT);
 
     console.log('Packaging files into a CAR file...');
     const tmpDir = fs.mkdtempSync('web4-deploy-');
