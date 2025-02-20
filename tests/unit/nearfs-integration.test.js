@@ -5,13 +5,12 @@ const { deployNEARFS } = require('../../src/util/nearfs');
 // Create a mock NEARFS gateway server
 function createMockServer() {
     return new Promise((resolve) => {
+        let receivedData = Buffer.from([]);
         const server = http.createServer((req, res) => {
-            let body = '';
             req.on('data', chunk => {
-                body += chunk.toString();
+                receivedData = Buffer.concat([receivedData, chunk]);
             });
             req.on('end', () => {
-                // Mock successful response
                 res.writeHead(200, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify({ success: true }));
             });
@@ -19,7 +18,7 @@ function createMockServer() {
         
         server.listen(0, () => { // 0 = random available port
             const port = server.address().port;
-            resolve({ server, port });
+            resolve({ server, port, getData: () => receivedData });
         });
     });
 }
@@ -68,16 +67,26 @@ test('NEARFS integration', async (t) => {
 
     // Test successful upload
     t.test('should upload to mock gateway', async (t) => {
-        // Create a proper CAR (Content Addressable aRchive) header
+        // Create a proper CAR with IPLD block
+        const blockData = Buffer.from('test content');
+        const blockLength = blockData.length;
+        
         const header = Buffer.from([
             0x63, 0x61, 0x72, // Magic bytes "car"
             0x01, // Version 1
-            0x00, // Characteristics 
-            0x00, 0x00, 0x00, 0x00, // Header length
-            0x00, 0x00, 0x00, 0x00  // Root CIDs length
+            0x00, // Characteristics
+            0x00, 0x00, 0x00, 0x08, // Header length (8 bytes)
+            0x00, 0x00, 0x00, 0x01  // Root CIDs length (1 CID)
         ]);
-        const data = Buffer.from('test content');
-        const testContent = Buffer.concat([header, data]);
+
+        // Add IPLD block structure
+        const block = Buffer.concat([
+            Buffer.from([blockLength]), // Varint length
+            Buffer.from('bafytest'), // Example CID
+            blockData
+        ]);
+
+        const testContent = Buffer.concat([header, block]);
         const mockCli = { flags: { yes: true } };
         
         try {
@@ -87,7 +96,9 @@ test('NEARFS integration', async (t) => {
                 retryCount: 1,
                 gatewayUrl: `http://localhost:${port}`
             });
-            t.pass('should complete upload successfully');
+            const uploadedData = getData();
+            t.ok(uploadedData.length > 0, 'should have uploaded data to server');
+            t.pass('upload completed with valid blocks');
         } catch (e) {
             t.fail(`upload failed: ${e.message}`);
         }
