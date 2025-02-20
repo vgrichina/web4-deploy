@@ -70,57 +70,6 @@ if (cli.input.length !== 2 || cli.flags.help) {
     cli.showHelp(1);
 }
 
-async function main(argv) {
-    const cli = meow(`
-    Usage:
-
-        web4-deploy <src-directory> <destination-account.near>
-
-    Options:
-
-        --deploy-contract [contract-name]   Deploy contract to the account.
-            If contract name is not provided, default contract gonna be deployed: https://github.com/vgrichina/web4-min-contract
-
-        --network [network]                NEAR network ID. Default: mainnet for .near accounts, testnet otherwise.
-            NEAR_ENV and NODE_ENV environment variable can be used as well if not specified explicitly.
-
-        --nearfs                           Deploy to NEARFS instead of IPFS. Enabled by default.
-            See more details on https://github.com/vgrichina/nearfs
-
-        --web3-storage                     Use web3.storage for IPFS pinning.
-        --yes                              Skip confirmation prompt.
-
-        --help                             Show this help message.
-
-        --version                          Show package version.
-    `, {
-        flags: {
-            deployContract: {
-                type: 'string',
-            },
-            network: {
-                type: 'string',
-            },
-            nearfs: {
-                type: 'boolean',
-                default: true,
-            },
-            web3Storage: {
-                type: 'boolean',
-            },
-            yes: {
-                type: 'boolean',
-            },
-            help: {
-                type: 'boolean',
-            },
-            version: {
-                type: 'boolean',
-            }
-        },
-        allowUnknownFlags: false,
-        argv
-    });
     return deploy(cli);
 }
 
