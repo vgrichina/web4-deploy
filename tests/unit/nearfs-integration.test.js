@@ -8,13 +8,23 @@ function createMockServer() {
     return new Promise((resolve) => {
         let receivedData = Buffer.from([]);
         const server = http.createServer((req, res) => {
-            req.on('data', chunk => {
-                receivedData = Buffer.concat([receivedData, chunk]);
-            });
-            req.on('end', () => {
-                res.writeHead(200, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({ success: true }));
-            });
+            // Handle HEAD requests for block existence check
+            if (req.method === 'HEAD') {
+                res.writeHead(404); // Block doesn't exist
+                res.end();
+                return;
+            }
+
+            // Handle POST requests for block upload
+            if (req.method === 'POST') {
+                req.on('data', chunk => {
+                    receivedData = Buffer.concat([receivedData, chunk]);
+                });
+                req.on('end', () => {
+                    res.writeHead(200, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ success: true }));
+                });
+            }
         });
         
         server.listen(0, () => { // 0 = random available port
