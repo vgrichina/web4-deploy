@@ -63,17 +63,15 @@ test('deploy CLI', async (t) => {
     // Test basic NEARFS deployment
     t.test('should deploy to NEARFS by default', async (t) => {
         process.env.NEAR_ENV = 'testnet';
-        process.argv = [
-            process.execPath,
-            path.resolve(__dirname, '../../bin/deploy'),
-            tmpDir,
-            'test.testnet',
-            '--yes'
-        ];
-
         try {
-            await main(process.argv);
-            t.pass('deployment completed successfully');
+            const result = await main([
+                process.execPath,
+                path.resolve(__dirname, '../../bin/deploy'),
+                tmpDir,
+                'test.testnet',
+                '--yes'
+            ]);
+            t.ok(result, 'deployment completed successfully');
         } catch (e) {
             t.fail(`deployment failed: ${e.message}`);
         }
