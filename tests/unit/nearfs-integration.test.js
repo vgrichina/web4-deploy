@@ -1,6 +1,7 @@
 const test = require('tape');
 const http = require('http');
 const { deployNEARFS } = require('../../src/util/nearfs');
+const { readCAR, readBlock } = require('fast-ipfs');
 
 // Create a mock NEARFS gateway server
 function createMockServer() {
@@ -83,8 +84,14 @@ test('NEARFS integration', async (t) => {
         const mockCli = { flags: { yes: true } };
         
         try {
+            // Debug CAR parsing
+            const blocks = readCAR(testContent);
+            console.log('Parsed blocks:', blocks);
+            const processedBlocks = blocks.slice(1).map(b => readBlock(b.data));
+            console.log('Processed blocks:', processedBlocks);
+
             await deployNEARFS(mockAccount, testContent, mockCli, {
-                log: () => {}, // Silence logs
+                log: console.log, // Enable logs for debugging
                 timeout: 1000,
                 retryCount: 1,
                 gatewayUrl: `http://localhost:${port}`
