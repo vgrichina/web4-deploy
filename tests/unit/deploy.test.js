@@ -3,6 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 const nearAPI = require('near-api-js');
+const { main } = require('../../bin/deploy');
 
 test('deploy CLI', async (t) => {
     // Save original env, argv, NEAR connect and process.exit
@@ -65,7 +66,7 @@ test('deploy CLI', async (t) => {
         process.argv = ['node', 'deploy', tmpDir, 'test.testnet', '--yes'];
 
         try {
-            require('../../bin/deploy');
+            await main(process.argv);
             t.pass('deployment completed successfully');
         } catch (e) {
             t.fail(`deployment failed: ${e.message}`);
