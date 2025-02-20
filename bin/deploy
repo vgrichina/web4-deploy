@@ -53,6 +53,9 @@ const cli = meow(`
         web3Storage: {
             type: 'boolean',
         },
+        yes: {
+            type: 'boolean',
+        },
         help: {
             type: 'boolean',
         },
