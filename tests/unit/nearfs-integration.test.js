@@ -73,6 +73,9 @@ test('NEARFS integration', async (t) => {
                     gas_price: '100000000'
                 })
             }
+        },
+        signAndSendTransaction: async ({ receiverId, actions }) => {
+            return { transaction_outcome: { id: 'test-tx' } };
         }
     };
 
