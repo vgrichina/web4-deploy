@@ -46,6 +46,7 @@ function createMockServer() {
 
 test('NEARFS integration', async (t) => {
     const { server, port, getData } = await createMockServer();
+    let transactionData = null;
     
     const mockAccount = {
         connection: {
@@ -93,8 +94,6 @@ test('NEARFS integration', async (t) => {
 
     // Test successful upload
     t.test('should upload to mock gateway', async (t) => {
-        let transactionData = null;
-        
         // Create a proper CAR format matching working example
         const testContent = Buffer.from([
             // CAR header
