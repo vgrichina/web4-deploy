@@ -6,7 +6,6 @@ const { readCAR, readBlock } = require('fast-ipfs');
 // Create a mock NEARFS gateway server
 function createMockServer() {
     return new Promise((resolve) => {
-        let receivedData = Buffer.from([]);
         const server = http.createServer((req, res) => {
             console.log('Received request:', {
                 method: req.method,
@@ -22,24 +21,21 @@ function createMockServer() {
                 return;
             }
 
-            // Handle POST requests for block upload
+            // We shouldn't receive POST requests
             if (req.method === 'POST') {
-                console.log('POST request for block upload');
-                req.on('data', chunk => {
-                    receivedData = Buffer.concat([receivedData, chunk]);
-                    console.log('Received chunk of size:', chunk.length);
-                });
-                req.on('end', () => {
-                    console.log('Upload complete, total data length:', receivedData.length);
-                    res.writeHead(200, { 'Content-Type': 'application/json' });
-                    res.end(JSON.stringify({ success: true }));
-                });
+                console.error('Unexpected POST request');
+                res.writeHead(400);
+                res.end();
+                return;
             }
+
+            res.writeHead(404);
+            res.end();
         });
         
         server.listen(0, () => { // 0 = random available port
             const port = server.address().port;
-            resolve({ server, port, getData: () => receivedData });
+            resolve({ server, port });
         });
     });
 }
@@ -128,8 +124,8 @@ test('NEARFS integration', async (t) => {
             t.equal(functionCallAction.methodName, 'fs_store', 'should call fs_store method');
             t.ok(functionCallAction.args.length > 0, 'should have block data');
             
-            const uploadedData = getData();
-            t.ok(uploadedData.length > 0, 'should have uploaded data to server');
+            // Verify only the transaction data since upload happens through NEAR
+            t.ok(functionCallAction.args.length > 0, 'should have block data in transaction');
         } catch (e) {
             t.fail(`upload failed: ${e.message}`);
         }
