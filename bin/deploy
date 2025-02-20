@@ -7,16 +7,21 @@ const { connect, keyStores, Account, KeyPair, transactions } = require('near-api
 
 const fs = require('fs');
 
+#!/usr/bin/env node
+
+const { Web3Storage } = require('web3.storage')
+const CID = require('cids');
+const { connect, keyStores, Account, KeyPair, transactions } = require('near-api-js');
+const fs = require('fs');
 const { CarReader } = require('@ipld/car');
 const { packToFs } = require('ipfs-car/pack/fs');
-
 const { deployNEARFS } = require('../src/util/nearfs.js');
 const { deployContract } = require('../src/util/deploy-contract.js');
 const { checkIPFSGateways } = require('../src/util/gateway-check.js');
-
 const meow = require('meow');
 
-const cli = meow(`
+async function main(argv) {
+    const cli = meow(`
     Usage:
 
         web4-deploy <src-directory> <destination-account.near>
@@ -38,37 +43,38 @@ const cli = meow(`
         --help                             Show this help message.
 
         --version                          Show package version.
-`, {
-    flags: {
-        deployContract: {
-            type: 'string',
+    `, {
+        flags: {
+            deployContract: {
+                type: 'string',
+            },
+            network: {
+                type: 'string',
+            },
+            nearfs: {
+                type: 'boolean',
+                default: true,
+            },
+            web3Storage: {
+                type: 'boolean',
+            },
+            yes: {
+                type: 'boolean',
+            },
+            help: {
+                type: 'boolean',
+            },
+            version: {
+                type: 'boolean',
+            }
         },
-        network: {
-            type: 'string',
-        },
-        nearfs: {
-            type: 'boolean',
-            default: true,
-        },
-        web3Storage: {
-            type: 'boolean',
-        },
-        yes: {
-            type: 'boolean',
-        },
-        help: {
-            type: 'boolean',
-        },
-        version: {
-            type: 'boolean',
-        }
-    },
-    allowUnknownFlags: false
-});
+        allowUnknownFlags: false,
+        argv
+    });
 
-if (cli.input.length !== 2 || cli.flags.help) {
-    cli.showHelp(1);
-}
+    if (cli.input.length !== 2 || cli.flags.help) {
+        cli.showHelp(1);
+    }
 
     return deploy(cli);
 }
