@@ -93,11 +93,16 @@ test('deploy CLI', async (t) => {
 
     // Test network selection based on account name
     t.test('should select correct network based on account', async (t) => {
+        // Clear any existing network env vars
+        delete process.env.NEAR_ENV;
+        delete process.env.NODE_ENV;
         process.argv = ['node', 'deploy', tmpDir, 'test.near', '--yes'];
 
         try {
+            // Clear require cache to ensure fresh environment
+            delete require.cache[require.resolve('../../bin/deploy')];
             require('../../bin/deploy');
-            t.equal(process.env.NEAR_ENV || 'mainnet', 'mainnet', 'should use mainnet for .near accounts');
+            t.equal(process.env.NEAR_ENV, 'mainnet', 'should use mainnet for .near accounts');
         } catch (e) {
             t.fail(`network selection failed: ${e.message}`);
         }
@@ -106,9 +111,11 @@ test('deploy CLI', async (t) => {
 
     // Test error on no storage provider selected
     t.test('should error when no storage provider selected', async (t) => {
-        process.argv = ['node', 'deploy', tmpDir, 'test.near', '--yes', '--no-nearfs'];
+        process.argv = ['node', 'deploy', tmpDir, 'test.near', '--yes', '--no-nearfs', '--no-web3-storage'];
 
         try {
+            // Clear require cache to ensure fresh environment
+            delete require.cache[require.resolve('../../bin/deploy')];
             require('../../bin/deploy');
             t.fail('should have thrown error for no storage provider');
         } catch (e) {
