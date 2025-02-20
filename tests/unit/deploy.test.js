@@ -113,9 +113,12 @@ test('deploy CLI', async (t) => {
                     gasPrice: async () => ({ gas_price: '100000000' })
                 }
             },
-            functionCall: async () => ({ transaction: { hash: 'mock-tx-hash' } })
+            functionCall: async () => ({ transaction: { hash: 'mock-tx-hash' } }),
+            signAndSendTransaction: async () => ({ transaction: { hash: 'mock-tx-hash' } })
         };
 
+        // Clear any existing env vars
+        delete process.env.NEAR_ENV;
         try {
             await main({
                 connectNEAR: async () => ({
@@ -190,6 +193,10 @@ test('deploy CLI', async (t) => {
                                     function_call_cost_per_byte: {
                                         send_not_sir: 2_235_934,
                                         execution: 2_235_934,
+                                    },
+                                    transfer_cost: {
+                                        send_not_sir: 115_123_062_500,
+                                        execution: 115_123_062_500,
                                     }
                                 },
                                 action_receipt_creation_config: {
