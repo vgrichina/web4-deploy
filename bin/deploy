@@ -67,8 +67,7 @@ async function main(argv) {
         cli.showHelp(1);
     }
 
-    const result = await deploy(cli);
-    return result || true;
+    return deploy(cli);
 }
 
 if (require.main === module) {
