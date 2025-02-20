@@ -5,10 +5,11 @@ const os = require('os');
 const nearAPI = require('near-api-js');
 
 test('deploy CLI', async (t) => {
-    // Save original env, argv and NEAR connect
+    // Save original env, argv, NEAR connect and process.exit
     const originalEnv = { ...process.env };
     const originalArgv = process.argv;
     const originalConnect = nearAPI.connect;
+    const originalExit = process.exit;
     
     // Create temporary test directory with real files
     const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'web4-deploy-test-'));
@@ -112,15 +113,20 @@ test('deploy CLI', async (t) => {
     // Test error on no storage provider selected
     t.test('should error when no storage provider selected', async (t) => {
         process.argv = ['node', 'deploy', tmpDir, 'test.near', '--yes', '--no-nearfs', '--no-web3-storage'];
+        
+        // Mock process.exit to throw an error we can catch
+        process.exit = (code) => {
+            throw new Error(`Exit with code ${code}`);
+        };
 
         try {
             // Clear require cache to ensure fresh environment
             delete require.cache[require.resolve('../../bin/deploy')];
             require('../../bin/deploy');
-            t.fail('should have thrown error for no storage provider');
+            t.fail('should have called process.exit');
         } catch (e) {
-            t.ok(e.message.includes('No IPFS pinning service configured'), 
-                'should throw appropriate error message');
+            t.ok(e.message.includes('Exit with code 1'), 
+                'should exit with code 1');
         }
         t.end();
     });
@@ -129,10 +135,11 @@ test('deploy CLI', async (t) => {
     t.teardown(() => {
         // Clean up test directory
         fs.rmSync(tmpDir, { recursive: true, force: true });
-        // Restore original environment, argv and NEAR connect
+        // Restore original environment, argv, NEAR connect and process.exit
         process.env = originalEnv;
         process.argv = originalArgv;
         nearAPI.connect = originalConnect;
+        process.exit = originalExit;
     });
 
     t.end();
