@@ -6,6 +6,12 @@
   "bin": {
     "web4-deploy": "bin/deploy"
   },
+  "files": [
+    "bin/",
+    "src/",
+    "data/",
+    "README.md"
+  ],
   "engines": {
     "node": ">=18.0.0"
   },
