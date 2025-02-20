@@ -63,7 +63,13 @@ test('deploy CLI', async (t) => {
     // Test basic NEARFS deployment
     t.test('should deploy to NEARFS by default', async (t) => {
         process.env.NEAR_ENV = 'testnet';
-        process.argv = ['node', 'deploy', tmpDir, 'test.testnet', '--yes'];
+        process.argv = [
+            process.execPath,
+            path.resolve(__dirname, '../../bin/deploy'),
+            tmpDir,
+            'test.testnet',
+            '--yes'
+        ];
 
         try {
             await main(process.argv);
@@ -76,7 +82,14 @@ test('deploy CLI', async (t) => {
 
     // Test contract deployment with real WASM file
     t.test('should deploy default contract', async (t) => {
-        process.argv = ['node', 'deploy', tmpDir, 'test.testnet', '--yes', '--deploy-contract'];
+        process.argv = [
+            process.execPath,
+            path.resolve(__dirname, '../../bin/deploy'),
+            tmpDir,
+            'test.testnet',
+            '--yes',
+            '--deploy-contract'
+        ];
 
         try {
             require('../../bin/deploy');
@@ -98,7 +111,13 @@ test('deploy CLI', async (t) => {
         // Clear any existing network env vars
         delete process.env.NEAR_ENV;
         delete process.env.NODE_ENV;
-        process.argv = ['node', 'deploy', tmpDir, 'test.near', '--yes'];
+        process.argv = [
+            process.execPath,
+            path.resolve(__dirname, '../../bin/deploy'),
+            tmpDir,
+            'test.near',
+            '--yes'
+        ];
 
         try {
             // Clear require cache to ensure fresh environment
@@ -113,7 +132,15 @@ test('deploy CLI', async (t) => {
 
     // Test error on no storage provider selected
     t.test('should error when no storage provider selected', async (t) => {
-        process.argv = ['node', 'deploy', tmpDir, 'test.near', '--yes', '--no-nearfs', '--no-web3-storage'];
+        process.argv = [
+            process.execPath,
+            path.resolve(__dirname, '../../bin/deploy'),
+            tmpDir,
+            'test.near',
+            '--yes',
+            '--no-nearfs',
+            '--no-web3-storage'
+        ];
         
         // Mock process.exit to throw an error we can catch
         process.exit = (code) => {
