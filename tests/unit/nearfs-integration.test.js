@@ -86,16 +86,15 @@ test('NEARFS integration', async (t) => {
         },
         signAndSendTransaction: async ({ receiverId, actions }) => {
             console.log('Transaction data:', actions);
-            // Verify the transaction contains expected data
-            const functionCallAction = actions[0];
-            t.equal(functionCallAction.methodName, 'fs_store', 'should call fs_store method');
-            t.ok(functionCallAction.args.length > 0, 'should have block data');
+            transactionData = actions;
             return { transaction_outcome: { id: 'test-tx' } };
         }
     };
 
     // Test successful upload
     t.test('should upload to mock gateway', async (t) => {
+        let transactionData = null;
+        
         // Create a proper CAR format matching working example
         const testContent = Buffer.from([
             // CAR header
@@ -124,9 +123,14 @@ test('NEARFS integration', async (t) => {
                 retryCount: 1,
                 gatewayUrl: `http://localhost:${port}`
             });
+            // Make assertions after deploy completes
+            t.ok(transactionData, 'should have transaction data');
+            const functionCallAction = transactionData[0];
+            t.equal(functionCallAction.methodName, 'fs_store', 'should call fs_store method');
+            t.ok(functionCallAction.args.length > 0, 'should have block data');
+            
             const uploadedData = getData();
             t.ok(uploadedData.length > 0, 'should have uploaded data to server');
-            t.pass('upload completed with valid blocks');
         } catch (e) {
             t.fail(`upload failed: ${e.message}`);
         }
