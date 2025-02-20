@@ -212,7 +212,8 @@ test('deploy CLI', async (t) => {
                     gasPrice: async () => ({ gas_price: '100000000' })
                 }
             },
-            functionCall: async () => ({ transaction: { hash: 'mock-tx-hash' } })
+            functionCall: async () => ({ transaction: { hash: 'mock-tx-hash' } }),
+            signAndSendTransaction: async () => ({ transaction: { hash: 'mock-tx-hash' } })
         };
 
         try {
