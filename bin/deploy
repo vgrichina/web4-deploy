@@ -11,7 +11,7 @@ const { deployContract } = require('../src/util/deploy-contract.js');
 const { checkIPFSGateways } = require('../src/util/gateway-check.js');
 const meow = require('meow');
 
-async function main(argv) {
+async function main() {
     const cli = meow(`
     Usage:
 
@@ -59,8 +59,7 @@ async function main(argv) {
                 type: 'boolean',
             }
         },
-        allowUnknownFlags: false,
-        argv
+        allowUnknownFlags: false
     });
 
     if (cli.input.length !== 2 || cli.flags.help) {
@@ -71,7 +70,7 @@ async function main(argv) {
 }
 
 if (require.main === module) {
-    main(process.argv);
+    main();
 } else {
     module.exports = { main };
 }
