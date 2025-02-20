@@ -24,7 +24,7 @@ function createMockServer() {
 }
 
 test('NEARFS integration', async (t) => {
-    const { server, port } = await createMockServer();
+    const { server, port, getData } = await createMockServer();
     
     const mockAccount = {
         connection: {
