@@ -75,7 +75,7 @@ if (require.main === module) {
     module.exports = { main };
 }
 
-async function connectNEAR(network, NEAR_SIGNER_KEY, NEAR_SIGNER_ACCOUNT) {
+async function doConnectNEAR(network, NEAR_SIGNER_KEY, NEAR_SIGNER_ACCOUNT) {
     const config = require('../src/config')(network);
     const keyStore = NEAR_SIGNER_KEY ? new keyStores.InMemoryKeyStore() : new keyStores.UnencryptedFileSystemKeyStore(`${process.env.HOME}/.near-credentials`);
     if (NEAR_SIGNER_KEY) {
@@ -89,7 +89,7 @@ async function connectNEAR(network, NEAR_SIGNER_KEY, NEAR_SIGNER_ACCOUNT) {
     return { config, keyStore, near, account };
 }
 
-async function deploy(cli, { connectNEAR = connectNEAR } = {}) {
+async function deploy(cli, { connectNEAR = doConnectNEAR } = {}) {
     const WEB3_TOKEN = process.env.WEB3_TOKEN;
     if (cli.flags.web3Storage && !WEB3_TOKEN) {
         console.error(`
