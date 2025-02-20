@@ -79,8 +79,46 @@ test('deploy CLI', async (t) => {
             '--yes'
         ];
 
+        const mockAccount = {
+            accountId: 'test.testnet',
+            connection: {
+                provider: {
+                    experimental_protocolConfig: async () => ({
+                        runtime_config: {
+                            transaction_costs: {
+                                action_creation_config: {
+                                    function_call_cost: {
+                                        send_not_sir: 2_319_900_000_000,
+                                        execution: 2_319_900_000_000,
+                                    },
+                                    function_call_cost_per_byte: {
+                                        send_not_sir: 2_235_934,
+                                        execution: 2_235_934,
+                                    }
+                                },
+                                action_receipt_creation_config: {
+                                    send_not_sir: 108_059_500_000,
+                                    execution: 108_059_500_000,
+                                }
+                            }
+                        }
+                    }),
+                    status: async () => ({
+                        sync_info: { latest_block_hash: 'mock-hash' }
+                    }),
+                    gasPrice: async () => ({ gas_price: '100000000' })
+                }
+            },
+            functionCall: async () => ({ transaction: { hash: 'mock-tx-hash' } })
+        };
+
         try {
-            await main();
+            await main({
+                connectNEAR: async () => ({
+                    config: { networkId: 'testnet', explorerUrl: 'https://explorer.testnet.near.org' },
+                    account: mockAccount
+                })
+            });
         } catch (e) {
             if (e.message !== 'EXIT') {
                 t.fail(`deployment failed: ${e.message}`);
@@ -133,8 +171,46 @@ test('deploy CLI', async (t) => {
             '--yes'
         ];
 
+        const mockAccount = {
+            accountId: 'test.near',
+            connection: {
+                provider: {
+                    experimental_protocolConfig: async () => ({
+                        runtime_config: {
+                            transaction_costs: {
+                                action_creation_config: {
+                                    function_call_cost: {
+                                        send_not_sir: 2_319_900_000_000,
+                                        execution: 2_319_900_000_000,
+                                    },
+                                    function_call_cost_per_byte: {
+                                        send_not_sir: 2_235_934,
+                                        execution: 2_235_934,
+                                    }
+                                },
+                                action_receipt_creation_config: {
+                                    send_not_sir: 108_059_500_000,
+                                    execution: 108_059_500_000,
+                                }
+                            }
+                        }
+                    }),
+                    status: async () => ({
+                        sync_info: { latest_block_hash: 'mock-hash' }
+                    }),
+                    gasPrice: async () => ({ gas_price: '100000000' })
+                }
+            },
+            functionCall: async () => ({ transaction: { hash: 'mock-tx-hash' } })
+        };
+
         try {
-            await main();
+            await main({
+                connectNEAR: async () => ({
+                    config: { networkId: 'mainnet', explorerUrl: 'https://explorer.near.org' },
+                    account: mockAccount
+                })
+            });
         } catch (e) {
             if (e.message !== 'EXIT') {
                 t.fail(`network selection failed: ${e.message}`);

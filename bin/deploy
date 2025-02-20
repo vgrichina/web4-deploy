@@ -11,7 +11,7 @@ const { deployContract } = require('../src/util/deploy-contract.js');
 const { checkIPFSGateways } = require('../src/util/gateway-check.js');
 const meow = require('meow');
 
-async function main() {
+async function main(options = {}) {
     const cli = meow(`
     Usage:
 
