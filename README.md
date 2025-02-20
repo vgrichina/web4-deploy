@@ -74,8 +74,8 @@ Means that you can have GitHub-specific account which cannot do anything else be
 
 - `--deploy-contract [contract-name]`: Deploy contract to the account. If contract name is not provided, default contract will be deployed.
 - `--network [network]`: NEAR network ID. Default: mainnet for .near accounts, testnet otherwise.
-- `--nearfs`: Deploy to NEARFS instead of IPFS. Enabled by default.
-- `--web3-storage`: Use web3.storage for IPFS pinning.
+- `--nearfs`: Deploy to NEARFS (default storage provider)
+- `--web3-storage`: Use web3.storage for IPFS pinning instead of NEARFS
 - `--yes`: Skip confirmation prompt.
 
 ### Environment Variables
@@ -95,7 +95,23 @@ Means that you can have GitHub-specific account which cannot do anything else be
 
 #### IPFS Configuration (Optional)
 - `WEB3_TOKEN` - web3.storage API token
-- `IPFS_GATEWAY_LIST` - Comma-separated list of IPFS gateways to hydrate
+- `IPFS_GATEWAY_LIST` - Comma-separated list of IPFS gateways to check (default: cloudflare-ipfs.com)
+- `IPFS_CHECK_DELAY` - Delay in milliseconds between gateway retries (default: 15000)
+
+## Testing
+
+To run the test suite:
+
+```sh
+yarn test
+```
+
+The test suite includes unit tests for:
+- Contract deployment
+- Gateway checking
+- NEARFS integration
+- CLI functionality
+- User confirmation handling
 
 ## Development
 
