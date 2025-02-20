@@ -124,6 +124,7 @@ test('deploy CLI', async (t) => {
         // Clear any existing network env vars
         delete process.env.NEAR_ENV;
         delete process.env.NODE_ENV;
+        const originalArgv = process.argv;
         process.argv = [
             process.execPath,
             path.resolve(__dirname, '../../bin/deploy'),
@@ -133,18 +134,21 @@ test('deploy CLI', async (t) => {
         ];
 
         try {
-            // Clear require cache to ensure fresh environment
-            delete require.cache[require.resolve('../../bin/deploy')];
-            require('../../bin/deploy');
-            t.equal(process.env.NEAR_ENV, 'mainnet', 'should use mainnet for .near accounts');
+            await main();
         } catch (e) {
-            t.fail(`network selection failed: ${e.message}`);
+            if (e.message !== 'EXIT') {
+                t.fail(`network selection failed: ${e.message}`);
+            }
+        } finally {
+            process.argv = originalArgv;
         }
+        t.equal(process.env.NEAR_ENV, 'mainnet', 'should use mainnet for .near accounts');
         t.end();
     });
 
     // Test error on no storage provider selected
     t.test('should error when no storage provider selected', async (t) => {
+        const originalArgv = process.argv;
         process.argv = [
             process.execPath,
             path.resolve(__dirname, '../../bin/deploy'),
@@ -155,20 +159,25 @@ test('deploy CLI', async (t) => {
             '--no-web3-storage'
         ];
         
-        // Mock process.exit to throw an error we can catch
+        let exitCalled = false;
+        const originalExit = process.exit;
         process.exit = (code) => {
+            exitCalled = true;
             throw new Error(`Exit with code ${code}`);
         };
 
         try {
-            // Clear require cache to ensure fresh environment
-            delete require.cache[require.resolve('../../bin/deploy')];
-            require('../../bin/deploy');
+            await main();
             t.fail('should have called process.exit');
         } catch (e) {
-            t.ok(e.message.includes('Exit with code 1'), 
-                'should exit with code 1');
+            if (!e.message.includes('Exit with code 1')) {
+                t.fail(`unexpected error: ${e.message}`);
+            }
+        } finally {
+            process.argv = originalArgv;
+            process.exit = originalExit;
         }
+        t.ok(exitCalled, 'should have called process.exit');
         t.end();
     });
 
