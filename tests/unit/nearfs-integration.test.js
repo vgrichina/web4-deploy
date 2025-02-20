@@ -8,8 +8,15 @@ function createMockServer() {
     return new Promise((resolve) => {
         let receivedData = Buffer.from([]);
         const server = http.createServer((req, res) => {
+            console.log('Received request:', {
+                method: req.method,
+                url: req.url,
+                headers: req.headers
+            });
+
             // Handle HEAD requests for block existence check
             if (req.method === 'HEAD') {
+                console.log('HEAD request for block existence check');
                 res.writeHead(404); // Block doesn't exist
                 res.end();
                 return;
@@ -17,10 +24,13 @@ function createMockServer() {
 
             // Handle POST requests for block upload
             if (req.method === 'POST') {
+                console.log('POST request for block upload');
                 req.on('data', chunk => {
                     receivedData = Buffer.concat([receivedData, chunk]);
+                    console.log('Received chunk of size:', chunk.length);
                 });
                 req.on('end', () => {
+                    console.log('Upload complete, total data length:', receivedData.length);
                     res.writeHead(200, { 'Content-Type': 'application/json' });
                     res.end(JSON.stringify({ success: true }));
                 });
