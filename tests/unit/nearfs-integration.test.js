@@ -124,7 +124,7 @@ test('NEARFS integration', async (t) => {
             });
             // Make assertions after deploy completes
             t.ok(transactionData, 'should have transaction data');
-            const functionCallAction = transactionData[0];
+            const functionCallAction = transactionData[0].functionCall;
             t.equal(functionCallAction.methodName, 'fs_store', 'should call fs_store method');
             t.ok(functionCallAction.args.length > 0, 'should have block data');
             
