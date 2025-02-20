@@ -67,7 +67,11 @@ if (cli.input.length !== 2 || cli.flags.help) {
     cli.showHelp(1);
 }
 
-deploy(cli);
+if (require.main === module) {
+    deploy(cli);
+} else {
+    module.exports = { deploy };
+}
 
 async function deploy(cli) {
     const WEB3_TOKEN = process.env.WEB3_TOKEN;
