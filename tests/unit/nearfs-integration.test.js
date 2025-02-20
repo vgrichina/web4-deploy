@@ -68,7 +68,14 @@ test('NEARFS integration', async (t) => {
 
     // Test successful upload
     t.test('should upload to mock gateway', async (t) => {
-        const testContent = Buffer.from('test content');
+        // Create a CAR-like buffer structure that NEARFS expects
+        const header = Buffer.from([
+            0x0a, 0x02, // Version
+            0x00, 0x00, 0x00, 0x00, // CID length
+            0x00, 0x00, 0x00, 0x00  // Data length
+        ]);
+        const data = Buffer.from('test content');
+        const testContent = Buffer.concat([header, data]);
         const mockCli = { flags: { yes: true } };
         
         try {
