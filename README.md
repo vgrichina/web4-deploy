@@ -42,7 +42,7 @@ Deploy default smart contract after uploading to IPFS:
 npx web4-deploy <src-directory> <destination-account.near> --deploy-contract
 ```
 
-This gonna deploy [web4-min-contract](https://github.com/vgrichina/web4-min-contract) to the account, so that `.near` account can be connected to respective IPFS hash.
+This will deploy [web4-min-contract](https://github.com/vgrichina/web4-min-contract) to the account, so that `.near` account can be connected to respective IPFS hash.
 
 Deploy custom smart contract after uploading to IPFS:
 
@@ -138,7 +138,7 @@ The deployment process consists of these steps:
    - web3.storage - pins content to IPFS network
 3. The smart contract's `web4_setStaticUrl` method is called to update the content URL
 
-The default web4-min contract provides these key features:
+The default [web4-min-contract](https://github.com/vgrichina/web4-min-contract) provides these key features:
 
 ### Single Page Application (SPA) Support
 The contract automatically handles SPAs by redirecting paths without file extensions to `index.html`. For example:
@@ -192,7 +192,7 @@ This allows to update static content without redeploying smart contract, which r
 
 See example smart contract: https://github.com/vgrichina/web4/blob/main/contract/assembly/index.ts
 
-You can also use defaulr smart contract for reference: https://github.com/vgrichina/web4-min-contract
+You can also use default smart contract for reference: [web4-min-contract](https://github.com/vgrichina/web4-min-contract)
 
 ## Roadmap
 
