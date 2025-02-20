@@ -138,9 +138,25 @@ The deployment process consists of these steps:
    - web3.storage - pins content to IPFS network
 3. The smart contract's `web4_setStaticUrl` method is called to update the content URL
 
-Note: The deployment requires appropriate access to the smart contract account. This can be provided either through:
-- Full access key in ~/.near-credentials
-- NEAR_SIGNER_KEY environment variable
+The default web4-min contract provides these key features:
+
+### Single Page Application (SPA) Support
+The contract automatically handles SPAs by redirecting paths without file extensions to `index.html`. For example:
+- `/about` -> serves `/index.html`
+- `/style.css` -> serves directly
+
+### Default Content
+When no static URL is set (before first deployment), the contract serves default content from IPFS with getting started instructions.
+
+### Access Control
+The contract can be managed by either:
+- The contract account itself
+- An owner account (if set via web4_setOwner)
+
+This means you can:
+- Use the contract account's full access key (stored in ~/.near-credentials)
+- Use NEAR_SIGNER_KEY environment variable
+- Set up a separate owner account for content management
 
 ## Smart contract integration
 
