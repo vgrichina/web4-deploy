@@ -218,10 +218,13 @@ test('deploy CLI', async (t) => {
 
         try {
             await main({
-                connectNEAR: async () => ({
-                    config: { networkId: 'mainnet', explorerUrl: 'https://explorer.near.org' },
-                    account: mockAccount
-                })
+                connectNEAR: async (network, NEAR_SIGNER_KEY, NEAR_SIGNER_ACCOUNT) => {
+                    t.equal(network, 'mainnet', 'should use mainnet for .near accounts');
+                    return {
+                        config: { networkId: 'mainnet', explorerUrl: 'https://explorer.near.org' },
+                        account: mockAccount
+                    };
+                }
             });
         } catch (e) {
             if (e.message !== 'EXIT') {
@@ -230,7 +233,6 @@ test('deploy CLI', async (t) => {
         } finally {
             process.argv = originalArgv;
         }
-        t.equal(process.env.NEAR_ENV, 'mainnet', 'should use mainnet for .near accounts');
         t.end();
     });
 
