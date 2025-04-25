@@ -164,7 +164,7 @@ You need to implement `web4_setStaticUrl` method similar to this:
 
 ```ts
 function assertOwner(): void {
-    // NOTE: Can change this check to alow different owners
+    // NOTE: Can change this check to allow different owners
     assert(context.sender == context.contractName);
 }
 
